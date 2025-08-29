@@ -211,9 +211,34 @@ class VoiceTranslateApp {
                 if (finalTranscript.trim()) {
                     // إذا كان الاكتشاف التلقائي مفعل، حاول اكتشاف اللغة وتحديث واجهة المستخدم
                     if (this.elements.sourceLang.value === 'auto') {
-                        const detectedLang = this.detectLanguage(finalTranscript);
-                        // تحديث عرض اللغة المكتشفة للمستخدم
-                        this.updateStatus(`تم اكتشاف اللغة: ${this.getLanguageName(detectedLang)}`);
+                        try {
+                            const detectedLang = this.detectLanguage(finalTranscript);
+                            // تحديث عرض اللغة المكتشفة للمستخدم
+                            this.updateStatus(`تم اكتشاف اللغة: ${this.getLanguageName(detectedLang)}`);
+                            
+                            // تحديث لغة التعرف على الصوت للمرة القادمة إذا كانت مختلفة
+                            const currentRecognitionLang = this.recognition.lang;
+                            const newRecognitionLang = {
+                                'ar': 'ar-SA',
+                                'en': 'en-US',
+                                'fr': 'fr-FR',
+                                'es': 'es-ES',
+                                'de': 'de-DE',
+                                'it': 'it-IT',
+                                'ja': 'ja-JP',
+                                'ko': 'ko-KR',
+                                'zh': 'zh-CN'
+                            }[detectedLang] || 'ar-SA';
+                            
+                            if (currentRecognitionLang !== newRecognitionLang) {
+                                this.recognition.lang = newRecognitionLang;
+                            }
+                        } catch (error) {
+                            console.error('خطأ في اكتشاف اللغة:', error);
+                            this.updateStatus('خطأ في اكتشاف اللغة، سيتم استخدام الإنجليزية', 'error');
+                            // استخدام الإنجليزية كافتراضي في حالة الخطأ
+                            this.recognition.lang = 'en-US';
+                        }
                     }
                     
                     this.translateText();
@@ -255,7 +280,12 @@ class VoiceTranslateApp {
             'zh': 'zh-CN'
         };
         
-        this.recognition.lang = langMap[sourceLang] || 'en-US';
+        // للاكتشاف التلقائي، نبدأ بالعربية كلغة افتراضية
+        if (sourceLang === 'auto') {
+            this.recognition.lang = 'ar-SA';
+        } else {
+            this.recognition.lang = langMap[sourceLang] || 'en-US';
+        }
     }
 
     cleanTranscript(text) {
@@ -373,47 +403,98 @@ class VoiceTranslateApp {
         throw new Error('لم يتم العثور على ترجمة');
     }
 
-    // اكتشاف اللغة التلقائي
+    // اكتشاف اللغة التلقائي المحسن
     detectLanguage(text) {
-        const arabicPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
-        const englishPattern = /[a-zA-Z]/;
-        const chinesePattern = /[\u4e00-\u9fff]/;
-        const japanesePattern = /[\u3040-\u309f\u30a0-\u30ff]/;
-        const koreanPattern = /[\uac00-\ud7af]/;
-        const frenchPattern = /[àâäéèêëïîôöùûüÿç]/i;
-        const germanPattern = /[äöüß]/i;
-        const spanishPattern = /[ñáéíóúü]/i;
-        const italianPattern = /[àèéìíîòóù]/i;
+        if (!text || text.trim().length === 0) {
+            return 'en'; // افتراضي
+        }
         
-        // حساب نسبة كل لغة في النص
-        const arabicCount = (text.match(arabicPattern) || []).length;
-        const englishCount = (text.match(englishPattern) || []).length;
-        const chineseCount = (text.match(chinesePattern) || []).length;
-        const japaneseCount = (text.match(japanesePattern) || []).length;
-        const koreanCount = (text.match(koreanPattern) || []).length;
-        const frenchCount = (text.match(frenchPattern) || []).length;
-        const germanCount = (text.match(germanPattern) || []).length;
-        const spanishCount = (text.match(spanishPattern) || []).length;
-        const italianCount = (text.match(italianPattern) || []).length;
+        text = text.trim();
+        const textLength = text.length;
         
-        // تحديد اللغة بناءً على أعلى نسبة
-        const scores = {
-            'ar': arabicCount,
-            'en': englishCount,
-            'zh': chineseCount,
-            'ja': japaneseCount,
-            'ko': koreanCount,
-            'fr': frenchCount,
-            'de': germanCount,
-            'es': spanishCount,
-            'it': italianCount
+        // عدادات للغات المختلفة
+        const languageScores = {
+            ar: 0,
+            en: 0,
+            zh: 0,
+            ja: 0,
+            ko: 0,
+            fr: 0,
+            de: 0,
+            es: 0,
+            it: 0
         };
         
+        // فحص الأحرف العربية مع وزن أعلى
+        const arabicChars = text.match(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g);
+        if (arabicChars) {
+            languageScores.ar += (arabicChars.length / textLength) * 100;
+        }
+        
+        // فحص الأحرف الصينية
+        const chineseChars = text.match(/[\u4e00-\u9fff]/g);
+        if (chineseChars) {
+            languageScores.zh += (chineseChars.length / textLength) * 100;
+        }
+        
+        // فحص الأحرف اليابانية
+        const japaneseChars = text.match(/[\u3040-\u309f\u30a0-\u30ff]/g);
+        if (japaneseChars) {
+            languageScores.ja += (japaneseChars.length / textLength) * 100;
+        }
+        
+        // فحص الأحرف الكورية
+        const koreanChars = text.match(/[\uac00-\ud7af]/g);
+        if (koreanChars) {
+            languageScores.ko += (koreanChars.length / textLength) * 100;
+        }
+        
+        // فحص الكلمات العربية الشائعة
+        const arabicWords = ['في', 'من', 'إلى', 'على', 'هذا', 'هذه', 'التي', 'الذي', 'كان', 'كانت', 'يكون', 'تكون', 'مع', 'عند', 'بعد', 'قبل', 'أن', 'إن', 'لا', 'نعم'];
+        arabicWords.forEach(word => {
+            const regex = new RegExp('\\b' + word + '\\b', 'g');
+            const matches = text.match(regex);
+            if (matches) {
+                languageScores.ar += matches.length * 5;
+            }
+        });
+        
+        // فحص الكلمات الإنجليزية الشائعة
+        const englishWords = ['the', 'and', 'is', 'in', 'to', 'of', 'a', 'that', 'it', 'with', 'for', 'as', 'was', 'on', 'are', 'you', 'this', 'be', 'at', 'have', 'hello', 'world', 'time', 'good', 'can', 'will', 'would', 'could', 'should'];
+        englishWords.forEach(word => {
+            const regex = new RegExp('\\b' + word + '\\b', 'gi');
+            const matches = text.match(regex);
+            if (matches) {
+                languageScores.en += matches.length * 3;
+            }
+        });
+        
+        // فحص الكلمات الفرنسية الشائعة
+        const frenchWords = ['le', 'de', 'et', 'un', 'à', 'être', 'avoir', 'que', 'pour', 'dans', 'ce', 'son', 'une', 'sur', 'avec', 'ne', 'se', 'pas', 'tout', 'plus', 'bonjour', 'merci', 'oui', 'non'];
+        frenchWords.forEach(word => {
+            const regex = new RegExp('\\b' + word + '\\b', 'gi');
+            const matches = text.match(regex);
+            if (matches) {
+                languageScores.fr += matches.length * 3;
+            }
+        });
+        
+        // إضافة نقاط للأحرف اللاتينية (للغات الأوروبية)
+        const latinChars = text.match(/[a-zA-Z]/g);
+        if (latinChars) {
+            const latinRatio = latinChars.length / textLength;
+            languageScores.en += latinRatio * 10;
+            languageScores.fr += latinRatio * 8;
+            languageScores.de += latinRatio * 8;
+            languageScores.es += latinRatio * 8;
+            languageScores.it += latinRatio * 8;
+        }
+        
         // العثور على اللغة ذات أعلى نقاط
-        let detectedLang = 'en'; // افتراضي
+        let detectedLang = 'en';
         let maxScore = 0;
         
-        for (const [lang, score] of Object.entries(scores)) {
+        for (const [lang, score] of Object.entries(languageScores)) {
             if (score > maxScore) {
                 maxScore = score;
                 detectedLang = lang;
@@ -421,9 +502,12 @@ class VoiceTranslateApp {
         }
         
         // إذا لم يتم اكتشاف أي لغة بوضوح، استخدم الإنجليزية كافتراضي
-        if (maxScore === 0) {
+        if (maxScore < 5) {
             detectedLang = 'en';
         }
+        
+        console.log('Language detection scores:', languageScores);
+        console.log('Detected language:', detectedLang);
         
         return detectedLang;
     }
@@ -448,8 +532,14 @@ class VoiceTranslateApp {
     async mockTranslateAPI(text, sourceLang, targetLang) {
         // اكتشاف اللغة التلقائي إذا كانت مطلوبة
         if (sourceLang === 'auto') {
-            sourceLang = this.detectLanguage(text);
-            console.log(`تم اكتشاف اللغة تلقائياً: ${sourceLang}`);
+            try {
+                sourceLang = this.detectLanguage(text);
+                console.log(`تم اكتشاف اللغة تلقائياً: ${sourceLang}`);
+            } catch (error) {
+                console.error('خطأ في اكتشاف اللغة أثناء الترجمة:', error);
+                sourceLang = 'en'; // استخدام الإنجليزية كافتراضي
+                this.updateStatus('خطأ في اكتشاف اللغة، سيتم استخدام الإنجليزية', 'error');
+            }
         }
         
         // محاولة استخدام خدمة ترجمة حقيقية أولاً
@@ -898,35 +988,88 @@ class VoiceTranslateApp {
             // تحديث حالة التقدم
             this.updateStatus('جاري تحليل الصورة...', 'info');
             
-            // معالجة مسبقة للصورة لتحسين دقة OCR
-            const processedImage = await this.preprocessImage(file);
+            // اكتشاف نوع النص المتوقع من اللغة المحددة
+            const sourceLang = document.getElementById('source-lang').value;
+            const isEnglishText = sourceLang === 'en';
             
-            // استخدام Tesseract.js لاستخراج النص مع إعدادات محسنة
+            // معالجة مسبقة للصورة لتحسين دقة OCR
+            const processedImage = await this.preprocessImage(file, isEnglishText);
+            
+            // إعدادات محسنة حسب نوع النص
+            let ocrOptions = {
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        const progress = Math.round(m.progress * 100);
+                        this.updateStatus(`جاري استخراج النص... ${progress}%`, 'info');
+                    }
+                },
+                preserve_interword_spaces: '1'
+            };
+            
+            // إعدادات خاصة للنصوص الإنجليزية
+            if (isEnglishText) {
+                ocrOptions = {
+                    ...ocrOptions,
+                    tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
+                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?;:"\'-()[]{}/@#$%^&*+=<>|\\~`',
+                    tessedit_ocr_engine_mode: Tesseract.OEM.LSTM_ONLY,
+                    classify_bln_numeric_mode: '0'
+                };
+            } else {
+                // إعدادات للنصوص العربية والمختلطة
+                ocrOptions = {
+                    ...ocrOptions,
+                    tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+                    tessedit_char_whitelist: 'ابتثجحخدذرزسشصضطظعغفقكلمنهويءآأؤإئةىABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?؟،؛:"\'-()[]{}/@#$%^&*+=<>|\\~`'
+                };
+            }
+            
+            // استخدام Tesseract.js لاستخراج النص
+            const language = isEnglishText ? 'eng' : 'ara+eng';
             const { data: { text } } = await Tesseract.recognize(
                 processedImage,
-                'ara+eng', // دعم العربية والإنجليزية
-                {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const progress = Math.round(m.progress * 100);
-                            this.updateStatus(`جاري استخراج النص... ${progress}%`, 'info');
-                        }
-                    },
-                    tessedit_pageseg_mode: Tesseract.PSM.AUTO,
-                    tessedit_char_whitelist: 'ابتثجحخدذرزسشصضطظعغفقكلمنهويءآأؤإئةىABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?؟،؛:',
-                    preserve_interword_spaces: '1'
-                }
+                language,
+                ocrOptions
             );
             
-            return text.trim();
+            // تنظيف النص المستخرج
+            const cleanedText = this.cleanExtractedText(text, isEnglishText);
+            
+            return cleanedText;
         } catch (error) {
             console.error('خطأ في Tesseract.js:', error);
             throw new Error('فشل في استخراج النص من الصورة');
         }
     }
 
+    // وظيفة تنظيف النص المستخرج
+    cleanExtractedText(text, isEnglishText) {
+        if (!text) return '';
+        
+        let cleaned = text.trim();
+        
+        if (isEnglishText) {
+            // تنظيف خاص للنصوص الإنجليزية
+            cleaned = cleaned
+                .replace(/[|\\]/g, 'I') // استبدال الخطوط العمودية بحرف I
+                .replace(/0/g, 'O') // استبدال الصفر بحرف O في بعض الحالات
+                .replace(/1/g, 'l') // استبدال الرقم 1 بحرف l في بعض الحالات
+                .replace(/\s+/g, ' ') // توحيد المسافات
+                .replace(/[^a-zA-Z0-9\s.,!?;:"'\-()\[\]{}\/@#$%^&*+=<>|\\~`]/g, '') // إزالة الرموز غير المرغوبة
+                .replace(/^[^a-zA-Z]+/, '') // إزالة الرموز من بداية النص
+                .replace(/[^a-zA-Z0-9.,!?;:"'\-()\[\]{}\/@#$%^&*+=<>|\\~`]+$/, ''); // إزالة الرموز من نهاية النص
+        } else {
+            // تنظيف للنصوص العربية والمختلطة
+            cleaned = cleaned
+                .replace(/\s+/g, ' ') // توحيد المسافات
+                .replace(/[^\u0600-\u06FFa-zA-Z0-9\s.,!?؟،؛:"'\-()\[\]{}\/@#$%^&*+=<>|\\~`]/g, ''); // الاحتفاظ بالأحرف العربية والإنجليزية فقط
+        }
+        
+        return cleaned.trim();
+    }
+    
     // وظيفة معالجة مسبقة للصور لتحسين دقة OCR
-    async preprocessImage(file) {
+    async preprocessImage(file, isEnglishText = false) {
         return new Promise((resolve, reject) => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -946,13 +1089,26 @@ class VoiceTranslateApp {
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const data = imageData.data;
                 
-                // تحسين التباين والسطوع
+                // تحسين التباين والسطوع حسب نوع النص
                 for (let i = 0; i < data.length; i += 4) {
                     // تحويل إلى رمادي
                     const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
                     
-                    // تحسين التباين
-                    const enhanced = gray > 128 ? 255 : 0;
+                    let enhanced;
+                    if (isEnglishText) {
+                        // معالجة محسنة للنصوص الإنجليزية
+                        // استخدام عتبة أكثر دقة وتحسين التباين
+                        const threshold = 140;
+                        enhanced = gray > threshold ? 255 : 0;
+                        
+                        // تطبيق تنعيم خفيف للنصوص الإنجليزية
+                        if (gray > threshold - 20 && gray < threshold + 20) {
+                            enhanced = gray > threshold ? 200 : 55;
+                        }
+                    } else {
+                        // معالجة للنصوص العربية
+                        enhanced = gray > 128 ? 255 : 0;
+                    }
                     
                     data[i] = enhanced;     // أحمر
                     data[i + 1] = enhanced; // أخضر
