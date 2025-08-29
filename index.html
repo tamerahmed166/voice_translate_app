@@ -73,20 +73,27 @@
                 </div>
             </div>
 
-            <div class="translation-area">
-                <div class="input-section">
-                    <div class="text-input">
-                        <textarea id="source-text" placeholder="اكتب النص هنا أو استخدم الميكروفون..."></textarea>
-                        <div class="input-controls">
-                            <button id="mic-btn" class="mic-button">
-                                <span class="mic-icon">🎤</span>
-                                <span class="mic-text">اضغط للتحدث</span>
-                            </button>
-                            <button id="clear-btn" class="clear-button">مسح</button>
-                        </div>
+            <!-- منطقة الإدخال تحت اختيار اللغة مباشرة -->
+            <div class="input-section">
+                <div class="text-input">
+                    <textarea id="source-text" placeholder="اكتب النص هنا أو استخدم الميكروفون..."></textarea>
+                    <div class="input-controls">
+                        <button id="mic-btn" class="mic-button">
+                            <span class="mic-icon">🎤</span>
+                            <span class="mic-text">اضغط للتحدث</span>
+                        </button>
+                        <button id="image-upload-btn" class="image-upload-button">
+                            <span class="upload-icon">📷</span>
+                            <span class="upload-text">رفع صورة</span>
+                        </button>
+                        <input type="file" id="image-input" accept="image/*" capture="environment" style="display: none;">
+                        <button id="clear-btn" class="clear-button">مسح</button>
                     </div>
                 </div>
+            </div>
 
+            <!-- منطقة الترجمة -->
+            <div class="translation-area">
                 <div class="output-section">
                     <div class="translation-output">
                         <div id="translated-text" class="translated-text">الترجمة ستظهر هنا...</div>

@@ -187,26 +187,41 @@ main {
     box-shadow: 0 6px 20px rgba(162, 155, 254, 0.5);
 }
 
+/* منطقة الإدخال الجديدة */
+.input-section {
+    margin-bottom: 25px;
+}
+
 .translation-area {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
+    display: flex;
+    justify-content: center;
     margin-bottom: 30px;
 }
 
 @media (max-width: 768px) {
     .translation-area {
-        grid-template-columns: 1fr;
-        gap: 20px;
+        flex-direction: column;
     }
 }
 
-.text-input, .translation-output {
+.text-input {
     background: #f8f9fa;
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 15px;
     border: 2px solid #e9ecef;
     transition: all 0.3s ease;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.translation-output {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 15px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .text-input:focus-within {
@@ -214,22 +229,38 @@ main {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.translation-output:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 #source-text {
     width: 100%;
     min-height: 120px;
+    max-height: 120px;
+    height: 120px;
     border: none;
     background: transparent;
-    font-size: 1.1rem;
-    resize: vertical;
+    font-size: 1rem;
+    resize: none;
     font-family: inherit;
     direction: rtl;
+    padding: 10px;
 }
 
 #source-text:focus {
     outline: none;
 }
 
-.input-controls, .output-controls {
+.input-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.output-controls {
     display: flex;
     gap: 12px;
     margin-top: 15px;
@@ -240,9 +271,9 @@ main {
     background: linear-gradient(135deg, #ff6b6b, #ee5a24);
     color: white;
     border: none;
-    padding: 20px 40px;
-    border-radius: 60px;
-    font-size: 1.2rem;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -317,7 +348,51 @@ main {
     100% { transform: scale(1); }
 }
 
-.clear-button, .copy-button {
+
+
+.image-upload-button {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(155, 89, 182, 0.3);
+    border: none;
+}
+
+.image-upload-button:hover {
+    background: linear-gradient(135deg, #8e44ad, #7d3c98);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(155, 89, 182, 0.4);
+}
+
+.image-upload-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.clear-button {
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 12px rgba(116, 185, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.copy-button {
     background: linear-gradient(135deg, #74b9ff, #0984e3);
     color: white;
     border: none;
@@ -358,23 +433,30 @@ main {
 }
 
 .translated-text {
+    width: 100%;
     min-height: 120px;
-    font-size: 1.1rem;
+    max-height: 120px;
+    height: 120px;
+    font-size: 1rem;
     line-height: 1.6;
     color: #2c3e50;
-    background: white;
-    padding: 20px;
+    background: transparent;
+    padding: 10px;
+    border: none;
     border-radius: 12px;
-    border: 2px dashed #e9ecef;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: right;
+    overflow-y: auto;
+    resize: none;
+    font-family: inherit;
+    direction: rtl;
 }
 
 .translated-text.has-content {
+    background: white;
     border: 2px solid #28a745;
-    background: #f8fff9;
     text-align: right;
     justify-content: flex-start;
     align-items: flex-start;
