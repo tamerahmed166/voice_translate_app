@@ -115,6 +115,20 @@ class VoiceTranslateApp {
         // تبديل اللغات
         this.elements.swapBtn.addEventListener('click', () => this.swapLanguages());
         
+        // تحديث لغة التعرف على الصوت عند تغيير اللغة المصدر
+        this.elements.sourceLang.addEventListener('change', () => {
+            this.updateRecognitionLanguage();
+            if (this.elements.sourceText.value.trim()) {
+                this.translateText();
+            }
+        });
+        
+        this.elements.targetLang.addEventListener('change', () => {
+            if (this.elements.sourceText.value.trim()) {
+                this.translateText();
+            }
+        });
+        
         // ترجمة تلقائية عند الكتابة
         this.elements.sourceText.addEventListener('input', () => {
             clearTimeout(this.translateTimeout);
@@ -146,6 +160,10 @@ class VoiceTranslateApp {
             
             this.recognition.continuous = false;
             this.recognition.interimResults = true;
+            this.recognition.maxAlternatives = 3;
+            
+            // تحديد لغة التعرف على الصوت بناءً على اللغة المصدر
+            this.updateRecognitionLanguage();
             
             this.recognition.onstart = () => {
                 this.isRecording = true;
@@ -159,17 +177,39 @@ class VoiceTranslateApp {
                 let interimTranscript = '';
                 
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
+                    // اختيار أفضل نتيجة من البدائل المتاحة
+                    let bestTranscript = event.results[i][0].transcript;
+                    let bestConfidence = event.results[i][0].confidence || 0;
+                    
+                    // البحث عن أفضل بديل بناءً على الثقة
+                    for (let j = 1; j < event.results[i].length; j++) {
+                        const alternative = event.results[i][j];
+                        if (alternative.confidence > bestConfidence) {
+                            bestTranscript = alternative.transcript;
+                            bestConfidence = alternative.confidence;
+                        }
+                    }
+                    
+                    // تنظيف النص
+                    bestTranscript = this.cleanTranscript(bestTranscript);
+                    
                     if (event.results[i].isFinal) {
-                        finalTranscript += transcript;
+                        finalTranscript += bestTranscript;
                     } else {
-                        interimTranscript += transcript;
+                        interimTranscript += bestTranscript;
                     }
                 }
                 
                 this.elements.sourceText.value = finalTranscript + interimTranscript;
                 
-                if (finalTranscript) {
+                if (finalTranscript.trim()) {
+                    // إذا كان الاكتشاف التلقائي مفعل، حاول اكتشاف اللغة وتحديث واجهة المستخدم
+                    if (this.elements.sourceLang.value === 'auto') {
+                        const detectedLang = this.detectLanguage(finalTranscript);
+                        // تحديث عرض اللغة المكتشفة للمستخدم
+                        this.updateStatus(`تم اكتشاف اللغة: ${this.getLanguageName(detectedLang)}`);
+                    }
+                    
                     this.translateText();
                 }
             };
@@ -193,6 +233,53 @@ class VoiceTranslateApp {
         }
     }
 
+    updateRecognitionLanguage() {
+        if (!this.recognition) return;
+        
+        const sourceLang = this.elements.sourceLang.value;
+        const langMap = {
+            'ar': 'ar-SA',
+            'en': 'en-US',
+            'fr': 'fr-FR',
+            'es': 'es-ES',
+            'de': 'de-DE',
+            'it': 'it-IT',
+            'ja': 'ja-JP',
+            'ko': 'ko-KR',
+            'zh': 'zh-CN'
+        };
+        
+        this.recognition.lang = langMap[sourceLang] || 'en-US';
+    }
+
+    cleanTranscript(text) {
+        if (!text) return '';
+        
+        // إزالة المسافات الزائدة
+        text = text.trim().replace(/\s+/g, ' ');
+        
+        // تصحيح بعض الأخطاء الشائعة في التعرف على الصوت العربي
+        const corrections = {
+            'ترانسليت': 'ترجم',
+            'ترانزليت': 'ترجم',
+            'translate': 'ترجم',
+            'هاي': 'مرحبا',
+            'باي': 'وداعا',
+            'اوكي': 'حسنا',
+            'اوك': 'حسنا',
+            'يس': 'نعم',
+            'نو': 'لا'
+        };
+        
+        // تطبيق التصحيحات
+        for (const [wrong, correct] of Object.entries(corrections)) {
+            const regex = new RegExp('\\b' + wrong + '\\b', 'gi');
+            text = text.replace(regex, correct);
+        }
+        
+        return text;
+    }
+
     toggleRecording() {
         if (!this.recognition) return;
         
@@ -202,9 +289,21 @@ class VoiceTranslateApp {
             // تحديد لغة التعرف
             const sourceLang = this.elements.sourceLang.value;
             if (sourceLang !== 'auto') {
-                this.recognition.lang = sourceLang;
+                const langMap = {
+                    'ar': 'ar-SA',
+                    'en': 'en-US',
+                    'fr': 'fr-FR',
+                    'es': 'es-ES',
+                    'de': 'de-DE',
+                    'it': 'it-IT',
+                    'ja': 'ja-JP',
+                    'ko': 'ko-KR',
+                    'zh': 'zh-CN'
+                };
+                this.recognition.lang = langMap[sourceLang] || 'en-US';
             } else {
-                this.recognition.lang = 'ar-SA'; // افتراضي للعربية
+                // للاكتشاف التلقائي، نبدأ بالعربية ثم نحاول اكتشاف اللغة من النص
+                this.recognition.lang = 'ar-SA';
             }
             
             this.recognition.start();
@@ -250,12 +349,117 @@ class VoiceTranslateApp {
         }
     }
 
+    // استخدام خدمة ترجمة حقيقية مجانية
+    async useRealTranslationAPI(text, sourceLang, targetLang) {
+        // استخدام MyMemory API المجاني
+        const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`;
+        
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error('فشل في الاتصال بخدمة الترجمة');
+        }
+        
+        const data = await response.json();
+        if (data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
+            return data.responseData.translatedText;
+        }
+        
+        throw new Error('لم يتم العثور على ترجمة');
+    }
+
+    // اكتشاف اللغة التلقائي
+    detectLanguage(text) {
+        const arabicPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+        const englishPattern = /[a-zA-Z]/;
+        const chinesePattern = /[\u4e00-\u9fff]/;
+        const japanesePattern = /[\u3040-\u309f\u30a0-\u30ff]/;
+        const koreanPattern = /[\uac00-\ud7af]/;
+        const frenchPattern = /[àâäéèêëïîôöùûüÿç]/i;
+        const germanPattern = /[äöüß]/i;
+        const spanishPattern = /[ñáéíóúü]/i;
+        const italianPattern = /[àèéìíîòóù]/i;
+        
+        // حساب نسبة كل لغة في النص
+        const arabicCount = (text.match(arabicPattern) || []).length;
+        const englishCount = (text.match(englishPattern) || []).length;
+        const chineseCount = (text.match(chinesePattern) || []).length;
+        const japaneseCount = (text.match(japanesePattern) || []).length;
+        const koreanCount = (text.match(koreanPattern) || []).length;
+        const frenchCount = (text.match(frenchPattern) || []).length;
+        const germanCount = (text.match(germanPattern) || []).length;
+        const spanishCount = (text.match(spanishPattern) || []).length;
+        const italianCount = (text.match(italianPattern) || []).length;
+        
+        // تحديد اللغة بناءً على أعلى نسبة
+        const scores = {
+            'ar': arabicCount,
+            'en': englishCount,
+            'zh': chineseCount,
+            'ja': japaneseCount,
+            'ko': koreanCount,
+            'fr': frenchCount,
+            'de': germanCount,
+            'es': spanishCount,
+            'it': italianCount
+        };
+        
+        // العثور على اللغة ذات أعلى نقاط
+        let detectedLang = 'en'; // افتراضي
+        let maxScore = 0;
+        
+        for (const [lang, score] of Object.entries(scores)) {
+            if (score > maxScore) {
+                maxScore = score;
+                detectedLang = lang;
+            }
+        }
+        
+        // إذا لم يتم اكتشاف أي لغة بوضوح، استخدم الإنجليزية كافتراضي
+        if (maxScore === 0) {
+            detectedLang = 'en';
+        }
+        
+        return detectedLang;
+    }
+
+    // الحصول على اسم اللغة بالعربية
+    getLanguageName(langCode) {
+        const languageNames = {
+            'ar': 'العربية',
+            'en': 'الإنجليزية',
+            'fr': 'الفرنسية',
+            'es': 'الإسبانية',
+            'de': 'الألمانية',
+            'it': 'الإيطالية',
+            'ja': 'اليابانية',
+            'ko': 'الكورية',
+            'zh': 'الصينية'
+        };
+        return languageNames[langCode] || langCode;
+    }
+
     // محاكاة API الترجمة - في التطبيق الحقيقي ستستخدم خدمة ترجمة حقيقية
     async mockTranslateAPI(text, sourceLang, targetLang) {
-        // محاكاة تأخير الشبكة
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // اكتشاف اللغة التلقائي إذا كانت مطلوبة
+        if (sourceLang === 'auto') {
+            sourceLang = this.detectLanguage(text);
+            console.log(`تم اكتشاف اللغة تلقائياً: ${sourceLang}`);
+        }
         
-        // قاموس ترجمة شامل للعرض التوضيحي
+        // محاولة استخدام خدمة ترجمة حقيقية أولاً
+        try {
+            const realTranslation = await this.useRealTranslationAPI(text, sourceLang, targetLang);
+            if (realTranslation && realTranslation !== text) {
+                return realTranslation;
+            }
+        } catch (error) {
+            console.log('فشل في استخدام خدمة الترجمة الحقيقية، سيتم استخدام القاموس المحلي');
+        }
+        
+        // محاكاة تأخير الشبكة
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // قاموس ترجمة شامل ومحسن
         const translations = {
             // العربية إلى الإنجليزية
             'مرحبا': { en: 'Hello', fr: 'Bonjour', es: 'Hola', de: 'Hallo', it: 'Ciao', ja: 'こんにちは', ko: '안녕하세요', zh: '你好' },
@@ -356,12 +560,40 @@ class VoiceTranslateApp {
             }
         }
         
-        // ترجمة افتراضية محسنة
-        if (targetLang === 'ar') {
-            return `ترجمة: ${text}`;
-        } else {
-            return `Translation: ${text}`;
+        // إذا لم توجد ترجمة، أعد النص الأصلي مع تحسين بسيط
+        // محاولة ترجمة بسيطة للكلمات الشائعة
+        const commonWords = {
+            'hello': { ar: 'مرحبا', en: 'hello' },
+            'مرحبا': { en: 'hello', ar: 'مرحبا' },
+            'good': { ar: 'جيد', en: 'good' },
+            'جيد': { en: 'good', ar: 'جيد' },
+            'bad': { ar: 'سيء', en: 'bad' },
+            'سيء': { en: 'bad', ar: 'سيء' },
+            'big': { ar: 'كبير', en: 'big' },
+            'كبير': { en: 'big', ar: 'كبير' },
+            'small': { ar: 'صغير', en: 'small' },
+            'صغير': { en: 'small', ar: 'صغير' },
+            'hot': { ar: 'حار', en: 'hot' },
+            'حار': { en: 'hot', ar: 'حار' },
+            'cold': { ar: 'بارد', en: 'cold' },
+            'بارد': { en: 'cold', ar: 'بارد' },
+            'new': { ar: 'جديد', en: 'new' },
+            'جديد': { en: 'new', ar: 'جديد' },
+            'old': { ar: 'قديم', en: 'old' },
+            'قديم': { en: 'old', ar: 'قديم' },
+            'fast': { ar: 'سريع', en: 'fast' },
+            'سريع': { en: 'fast', ar: 'سريع' },
+            'slow': { ar: 'بطيء', en: 'slow' },
+            'بطيء': { en: 'slow', ar: 'بطيء' }
+        };
+        
+        // محاولة أخيرة مع الكلمات الشائعة
+        if (commonWords[lowerText] && commonWords[lowerText][targetLang]) {
+            return commonWords[lowerText][targetLang];
         }
+        
+        // إذا لم توجد ترجمة، أعد النص الأصلي
+        return text;
     }
 
     speakTranslation() {
