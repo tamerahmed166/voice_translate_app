@@ -894,52 +894,29 @@ class VoiceTranslateApp {
 
     // وظيفة استخراج النص من الصورة باستخدام Tesseract.js
     async extractTextFromImage(file) {
-        return new Promise((resolve, reject) => {
-            // إنشاء canvas لمعالجة الصورة
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = new Image();
+        try {
+            // تحديث حالة التقدم
+            this.updateStatus('جاري تحليل الصورة...', 'info');
             
-            img.onload = () => {
-                // تحسين جودة الصورة
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                
-                // تحويل إلى base64
-                const imageData = canvas.toDataURL('image/png');
-                
-                // محاكاة OCR بسيط (في التطبيق الحقيقي نحتاج Tesseract.js)
-                this.simulateOCR(imageData)
-                    .then(resolve)
-                    .catch(reject);
-            };
+            // استخدام Tesseract.js لاستخراج النص
+            const { data: { text } } = await Tesseract.recognize(
+                file,
+                'ara+eng', // دعم العربية والإنجليزية
+                {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            this.updateStatus(`جاري استخراج النص... ${progress}%`, 'info');
+                        }
+                    }
+                }
+            );
             
-            img.onerror = () => reject(new Error('فشل في تحميل الصورة'));
-            img.src = URL.createObjectURL(file);
-        });
-    }
-
-    // محاكاة OCR (في التطبيق الحقيقي نحتاج مكتبة Tesseract.js)
-    async simulateOCR(imageData) {
-        // هذه محاكاة بسيطة - في التطبيق الحقيقي نحتاج:
-        // import Tesseract from 'tesseract.js';
-        // const { data: { text } } = await Tesseract.recognize(imageData, 'ara+eng');
-        
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                // نص تجريبي للاختبار
-                const sampleTexts = [
-                    'مرحبا بك في تطبيق الترجمة',
-                    'Hello, welcome to the translation app',
-                    'أين يمكنني العثور على الفندق؟',
-                    'Where can I find the hotel?',
-                    'شكراً لك على المساعدة'
-                ];
-                const randomText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
-                resolve(randomText);
-            }, 2000); // محاكاة وقت المعالجة
-        });
+            return text.trim();
+        } catch (error) {
+            console.error('خطأ في Tesseract.js:', error);
+            throw new Error('فشل في استخراج النص من الصورة');
+        }
     }
 
     updateStatus(message, type = 'info') {
