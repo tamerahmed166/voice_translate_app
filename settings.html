@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإعدادات - Instant Translation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .settings-content {
+            padding: 0;
+        }
+
+        .settings-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            padding: 15px 20px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #f8f9fa;
+        }
+
+        .setting-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .setting-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .setting-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+        }
+
+        .setting-icon.blue { background: #007AFF; }
+        .setting-icon.green { background: #34C759; }
+        .setting-icon.purple { background: #AF52DE; }
+        .setting-icon.orange { background: #FF9500; }
+        .setting-icon.red { background: #FF3B30; }
+        .setting-icon.gray { background: #8E8E93; }
+
+        .setting-text {
+            flex: 1;
+        }
+
+        .setting-title {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .setting-subtitle {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .setting-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-value {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .arrow {
+            font-size: 14px;
+            color: #C7C7CC;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 30px;
+            background: #E5E5EA;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #34C759;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 10px 0 30px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            color: #666;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: #007AFF;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">‹</button>
+            <h1>الإعدادات</h1>
+        </div>
+
+        <div class="settings-content">
+            <!-- General Section -->
+            <div class="settings-section">
+                <div class="section-title">عام</div>
+                
+                <div class="setting-item" onclick="openLanguages()">
+                    <div class="setting-left">
+                        <div class="setting-icon blue">🌐</div>
+                        <div class="setting-text">
+                            <div class="setting-title">اللغات</div>
+                            <div class="setting-subtitle">إدارة حزم اللغات</div>
+                        </div>
+                    </div>
+                    <div class="setting-right">
+                        <span class="arrow">‹</span>
+                    </div>
+                </div>
+
+                <div class="setting-item" onclick="openAppLanguage()">
+                    <div class="setting-left">
+                        <div class="setting-text">
+                            <div class="setting-title">لغة التطبيق</div>
+                            <div class="setting-subtitle">اختر لغة التطبيق المفضلة</div>
+                        </div>
+                    </div>
+                    <div class="setting-right">
+                        <span class="setting-value">العربية</span>
+                        <span class="arrow">‹</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- App Settings Section -->
+            <div class="settings-section">
+                <div class="section-title">إعدادات التطبيق</div>
+                
+                <div class="setting-item">
+                    <div class="setting-left">
+                        <div class="setting-icon purple">🌙</div>
+                        <div class="setting-text">
+                            <div class="setting-title">المظهر</div>
+                            <div class="setting-subtitle">فاتح / داكن</div>
+                        </div>
+                    </div>
+                    <div class="setting-right">
+                        <div class="toggle-switch" id="themeToggle" onclick="toggleTheme()"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div class="settings-section">
+                <div class="section-title">الإشعارات</div>
+                
+                <div class="setting-item">
+                    <div class="setting-left">
+                        <div class="setting-text">
+                            <div class="setting-title">نصائح يومية</div>
+                            <div class="setting-subtitle">احصل على نصائح ترجمة يومية</div>
+                        </div>
+                    </div>
+                    <div class="setting-right">
+                        <div class="toggle-switch" id="dailyTipsToggle" onclick="toggleDailyTips()"></div>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-left">
+                        <div class="setting-text">
+                            <div class="setting-title">التحديثات</div>
+                            <div class="setting-subtitle">احصل على إشعارات حول الميزات الجديدة</div>
+                        </div>
+                    </div>
+                    <div class="setting-right">
+                        <div class="toggle-switch active" id="updatesToggle" onclick="toggleUpdates()"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support & Feedback Section -->
+            <div class="settings-section">
+                <div class="section-title">الدعم والملاحظات</div>
+                
+                <div class="setting-item" onclick="sendFeedback()">
+                    <div class="setting-left">
+                        <div class="setting-icon green">💬</div>
+                        <div class="setting-text">
+                            <div class="setting-title">إرسال ملاحظات</div>
+                        </div>
+                    </div>
+                    <div class="setting-right">
+                        <span class="arrow">‹</span>
+                    </div>
+                </div>
+
+                <div class="setting-item" onclick="openHelp()">
+                    <div class="setting-left">
+                        <div class="setting-icon orange">❓</div>
+                        <div class="setting-text">
+                            <div class="setting-title">المساعدة</div>
+                        </div>
+                    </div>
+                    <div class="setting-right">
+                        <span class="arrow">‹</span>
+                    </div>
+                </div>
+
+                <div class="setting-item" onclick="openPrivacyPolicy()">
+                    <div class="setting-left">
+                        <div class="setting-icon gray">🔒</div>
+                        <div class="setting-text">
+                            <div class="setting-title">سياسة الخصوصية</div>
+                        </div>
+                    </div>
+                    <div class="setting-right">
+                        <span class="arrow">‹</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="dashboard.html" class="nav-item">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">الرئيسية</div>
+        </a>
+        <a href="index.html" class="nav-item">
+            <div class="nav-icon">🔄</div>
+            <div class="nav-label">ترجمة</div>
+        </a>
+        <a href="#" class="nav-item">
+            <div class="nav-icon">📚</div>
+            <div class="nav-label">المحفوظات</div>
+        </a>
+        <a href="settings.html" class="nav-item active">
+            <div class="nav-icon">⚙️</div>
+            <div class="nav-label">الإعدادات</div>
+        </a>
+    </div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+
+        function toggleTheme() {
+            const toggle = document.getElementById('themeToggle');
+            toggle.classList.toggle('active');
+            
+            // Here you would implement actual theme switching
+            if (toggle.classList.contains('active')) {
+                console.log('تم تفعيل المظهر الداكن');
+            } else {
+                console.log('تم تفعيل المظهر الفاتح');
+            }
+        }
+
+        function toggleDailyTips() {
+            const toggle = document.getElementById('dailyTipsToggle');
+            toggle.classList.toggle('active');
+            
+            if (toggle.classList.contains('active')) {
+                console.log('تم تفعيل النصائح اليومية');
+            } else {
+                console.log('تم إلغاء النصائح اليومية');
+            }
+        }
+
+        function toggleUpdates() {
+            const toggle = document.getElementById('updatesToggle');
+            toggle.classList.toggle('active');
+            
+            if (toggle.classList.contains('active')) {
+                console.log('تم تفعيل إشعارات التحديثات');
+            } else {
+                console.log('تم إلغاء إشعارات التحديثات');
+            }
+        }
+
+        function openLanguages() {
+            alert('سيتم فتح صفحة إدارة اللغات');
+        }
+
+        function openAppLanguage() {
+            alert('سيتم فتح صفحة اختيار لغة التطبيق');
+        }
+
+        function sendFeedback() {
+            alert('سيتم فتح نموذج إرسال الملاحظات');
+        }
+
+        function openHelp() {
+            alert('سيتم فتح صفحة المساعدة');
+        }
+
+        function openPrivacyPolicy() {
+            alert('سيتم فتح سياسة الخصوصية');
+        }
+
+        // Initialize settings from localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load theme setting
+            const savedTheme = localStorage.getItem('darkMode');
+            if (savedTheme === 'true') {
+                document.getElementById('themeToggle').classList.add('active');
+            }
+
+            // Load daily tips setting
+            const savedDailyTips = localStorage.getItem('dailyTips');
+            if (savedDailyTips === 'true') {
+                document.getElementById('dailyTipsToggle').classList.add('active');
+            }
+
+            // Load updates setting (default to true)
+            const savedUpdates = localStorage.getItem('updates');
+            if (savedUpdates === null || savedUpdates === 'true') {
+                document.getElementById('updatesToggle').classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>

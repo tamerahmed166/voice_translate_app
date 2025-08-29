@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - تطبيق الترجمة الصوتية</title>
+    <link rel="stylesheet" href="login-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <!-- خلفية متحركة -->
+        <div class="background-animation">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
+            <div class="floating-shape shape-4"></div>
+        </div>
+
+        <!-- شعار التطبيق -->
+        <div class="app-logo">
+            <div class="logo-icon">🎤</div>
+            <h1 class="logo-text">الترجمة الصوتية</h1>
+            <p class="logo-subtitle">كسر حواجز اللغة بسهولة</p>
+        </div>
+
+        <!-- حاوية النماذج -->
+        <div class="auth-card">
+            <!-- أزرار التبديل -->
+            <div class="tab-container">
+                <button class="tab-btn active" data-tab="login">
+                    <span class="tab-icon">🔑</span>
+                    <span class="tab-text">تسجيل الدخول</span>
+                </button>
+                <button class="tab-btn" data-tab="register">
+                    <span class="tab-icon">✨</span>
+                    <span class="tab-text">إنشاء حساب</span>
+                </button>
+            </div>
+
+            <!-- نموذج تسجيل الدخول -->
+            <div id="login-form" class="form-container active">
+                <div class="form-header">
+                    <h2 class="form-title">مرحباً بعودتك!</h2>
+                    <p class="form-subtitle">سجل دخولك للوصول إلى حسابك</p>
+                </div>
+
+                <form class="auth-form">
+                    <div class="input-group">
+                        <label for="login-email" class="input-label">
+                            <span class="label-icon">📧</span>
+                            البريد الإلكتروني
+                        </label>
+                        <input 
+                            type="email" 
+                            id="login-email" 
+                            class="auth-input" 
+                            placeholder="أدخل بريدك الإلكتروني"
+                            required
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="login-password" class="input-label">
+                            <span class="label-icon">🔒</span>
+                            كلمة المرور
+                        </label>
+                        <div class="password-container">
+                            <input 
+                                type="password" 
+                                id="login-password" 
+                                class="auth-input" 
+                                placeholder="أدخل كلمة المرور"
+                                required
+                            >
+                            <button 
+                                type="button" 
+                                class="toggle-password" 
+                                data-target="login-password"
+                                aria-label="إظهار/إخفاء كلمة المرور"
+                            >👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="remember-me">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-text">تذكرني</span>
+                        </label>
+                        <a href="#" class="forgot-password">نسيت كلمة المرور؟</a>
+                    </div>
+
+                    <button type="submit" class="auth-btn login-btn">
+                        <span class="btn-icon">🚀</span>
+                        <span class="btn-text">تسجيل الدخول</span>
+                    </button>
+                </form>
+
+                <!-- خط الفصل -->
+                <div class="divider">
+                    <span class="divider-text">أو</span>
+                </div>
+
+                <!-- أزرار تسجيل الدخول الاجتماعي -->
+                <div class="social-login">
+                    <button class="social-btn google-btn">
+                        <span class="social-icon">🔍</span>
+                        <span class="social-text">المتابعة مع Google</span>
+                    </button>
+                    <button class="social-btn facebook-btn">
+                        <span class="social-icon">📘</span>
+                        <span class="social-text">المتابعة مع Facebook</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- نموذج إنشاء الحساب -->
+            <div id="register-form" class="form-container">
+                <div class="form-header">
+                    <h2 class="form-title">إنشاء حساب جديد</h2>
+                    <p class="form-subtitle">انضم إلينا واستمتع بالترجمة الفورية</p>
+                </div>
+
+                <form class="auth-form">
+                    <div class="input-group">
+                        <label for="register-name" class="input-label">
+                            <span class="label-icon">👤</span>
+                            الاسم الكامل
+                        </label>
+                        <input 
+                            type="text" 
+                            id="register-name" 
+                            class="auth-input" 
+                            placeholder="أدخل اسمك الكامل"
+                            required
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="register-email" class="input-label">
+                            <span class="label-icon">📧</span>
+                            البريد الإلكتروني
+                        </label>
+                        <input 
+                            type="email" 
+                            id="register-email" 
+                            class="auth-input" 
+                            placeholder="أدخل بريدك الإلكتروني"
+                            required
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="register-password" class="input-label">
+                            <span class="label-icon">🔒</span>
+                            كلمة المرور
+                        </label>
+                        <div class="password-container">
+                            <input 
+                                type="password" 
+                                id="register-password" 
+                                class="auth-input" 
+                                placeholder="أدخل كلمة مرور قوية"
+                                required
+                            >
+                            <button 
+                                type="button" 
+                                class="toggle-password" 
+                                data-target="register-password"
+                                aria-label="إظهار/إخفاء كلمة المرور"
+                            >👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="confirm-password" class="input-label">
+                            <span class="label-icon">🔐</span>
+                            تأكيد كلمة المرور
+                        </label>
+                        <div class="password-container">
+                            <input 
+                                type="password" 
+                                id="confirm-password" 
+                                class="auth-input" 
+                                placeholder="أعد إدخال كلمة المرور"
+                                required
+                            >
+                            <button 
+                                type="button" 
+                                class="toggle-password" 
+                                data-target="confirm-password"
+                                aria-label="إظهار/إخفاء كلمة المرور"
+                            >👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="agree-terms" required>
+                            <span class="checkmark"></span>
+                            <span class="checkbox-text">
+                                أوافق على 
+                                <a href="#" class="terms-link">الشروط والأحكام</a>
+                                و
+                                <a href="#" class="privacy-link">سياسة الخصوصية</a>
+                            </span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="auth-btn register-btn">
+                        <span class="btn-icon">✨</span>
+                        <span class="btn-text">إنشاء الحساب</span>
+                    </button>
+                </form>
+
+                <!-- خط الفصل -->
+                <div class="divider">
+                    <span class="divider-text">أو</span>
+                </div>
+
+                <!-- أزرار تسجيل الدخول الاجتماعي -->
+                <div class="social-login">
+                    <button class="social-btn google-btn">
+                        <span class="social-icon">🔍</span>
+                        <span class="social-text">التسجيل مع Google</span>
+                    </button>
+                    <button class="social-btn facebook-btn">
+                        <span class="social-icon">📘</span>
+                        <span class="social-text">التسجيل مع Facebook</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- روابط إضافية -->
+        <div class="auth-footer">
+            <div class="footer-links">
+                <a href="index.html" class="footer-link">
+                    <span class="link-icon">🏠</span>
+                    العودة للرئيسية
+                </a>
+                <a href="#" class="footer-link">
+                    <span class="link-icon">❓</span>
+                    المساعدة
+                </a>
+                <a href="#" class="footer-link">
+                    <span class="link-icon">📞</span>
+                    اتصل بنا
+                </a>
+            </div>
+            <div class="footer-text">
+                <p>&copy; 2024 تطبيق الترجمة الصوتية. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ربط ملف JavaScript -->
+    <script src="login-script.js"></script>
+</body>
+</html>
