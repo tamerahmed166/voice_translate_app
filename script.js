@@ -898,9 +898,12 @@ class VoiceTranslateApp {
             // تحديث حالة التقدم
             this.updateStatus('جاري تحليل الصورة...', 'info');
             
-            // استخدام Tesseract.js لاستخراج النص
+            // معالجة مسبقة للصورة لتحسين دقة OCR
+            const processedImage = await this.preprocessImage(file);
+            
+            // استخدام Tesseract.js لاستخراج النص مع إعدادات محسنة
             const { data: { text } } = await Tesseract.recognize(
-                file,
+                processedImage,
                 'ara+eng', // دعم العربية والإنجليزية
                 {
                     logger: m => {
@@ -908,7 +911,10 @@ class VoiceTranslateApp {
                             const progress = Math.round(m.progress * 100);
                             this.updateStatus(`جاري استخراج النص... ${progress}%`, 'info');
                         }
-                    }
+                    },
+                    tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+                    tessedit_char_whitelist: 'ابتثجحخدذرزسشصضطظعغفقكلمنهويءآأؤإئةىABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?؟،؛:',
+                    preserve_interword_spaces: '1'
                 }
             );
             
@@ -917,6 +923,53 @@ class VoiceTranslateApp {
             console.error('خطأ في Tesseract.js:', error);
             throw new Error('فشل في استخراج النص من الصورة');
         }
+    }
+
+    // وظيفة معالجة مسبقة للصور لتحسين دقة OCR
+    async preprocessImage(file) {
+        return new Promise((resolve, reject) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = () => {
+                // تحديد حجم الصورة المحسن
+                const scale = Math.min(2000 / img.width, 2000 / img.height, 2);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                
+                // رسم الصورة بحجم محسن
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // الحصول على بيانات الصورة
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                // تحسين التباين والسطوع
+                for (let i = 0; i < data.length; i += 4) {
+                    // تحويل إلى رمادي
+                    const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                    
+                    // تحسين التباين
+                    const enhanced = gray > 128 ? 255 : 0;
+                    
+                    data[i] = enhanced;     // أحمر
+                    data[i + 1] = enhanced; // أخضر
+                    data[i + 2] = enhanced; // أزرق
+                    // data[i + 3] يبقى كما هو (الشفافية)
+                }
+                
+                // إعادة رسم البيانات المحسنة
+                ctx.putImageData(imageData, 0, 0);
+                
+                // تحويل إلى blob
+                canvas.toBlob(resolve, 'image/png', 1.0);
+            };
+            
+            img.onerror = () => reject(new Error('فشل في تحميل الصورة'));
+            img.src = URL.createObjectURL(file);
+        });
     }
 
     updateStatus(message, type = 'info') {
