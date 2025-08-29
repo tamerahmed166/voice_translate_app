@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ترجمة فورية">
+    <meta name="description" content="تطبيق الترجمة الصوتية الفورية - تحدث بأي لغة واحصل على الترجمة فوراً">
+    
+    <!-- Mobile Optimization -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <title>تطبيق الترجمة الفورية</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗣️ تطبيق الترجمة الفورية</h1>
+            <p>تحدث بأي لغة واحصل على الترجمة فوراً</p>
+        </header>
+
+        <main>
+            <div class="language-selector">
+                <div class="language-group">
+                    <label for="source-lang">اللغة المصدر:</label>
+                    <select id="source-lang">
+                        <option value="auto">اكتشاف تلقائي</option>
+                        <option value="ar">العربية</option>
+                        <option value="en">English</option>
+                        <option value="fr">Français</option>
+                        <option value="es">Español</option>
+                        <option value="de">Deutsch</option>
+                        <option value="it">Italiano</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="zh">中文</option>
+                    </select>
+                </div>
+                
+                <div class="swap-btn">
+                    <button id="swap-languages" title="تبديل اللغات">⇄</button>
+                </div>
+                
+                <div class="language-group">
+                    <label for="target-lang">اللغة الهدف:</label>
+                    <select id="target-lang">
+                        <option value="en">English</option>
+                        <option value="ar">العربية</option>
+                        <option value="fr">Français</option>
+                        <option value="es">Español</option>
+                        <option value="de">Deutsch</option>
+                        <option value="it">Italiano</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="zh">中文</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="translation-area">
+                <div class="input-section">
+                    <div class="text-input">
+                        <textarea id="source-text" placeholder="اكتب النص هنا أو استخدم الميكروفون..."></textarea>
+                        <div class="input-controls">
+                            <button id="mic-btn" class="mic-button">
+                                <span class="mic-icon">🎤</span>
+                                <span class="mic-text">اضغط للتحدث</span>
+                            </button>
+                            <button id="clear-btn" class="clear-button">مسح</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="output-section">
+                    <div class="translation-output">
+                        <div id="translated-text" class="translated-text">الترجمة ستظهر هنا...</div>
+                        <div class="output-controls">
+                            <button id="speak-btn" class="speak-button" disabled>
+                                <span class="speak-icon">🔊</span>
+                                <span class="speak-text">استمع للترجمة</span>
+                            </button>
+                            <button id="copy-btn" class="copy-button" disabled>نسخ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <div id="status" class="status">جاهز للاستخدام</div>
+                <div class="connection-status">
+                    <span id="connection-indicator" class="online">🟢</span>
+                    <span>متصل</span>
+                </div>
+            </div>
+
+            <div class="favorites-section">
+                <h3>العبارات المحفوظة</h3>
+                <div id="favorites-list" class="favorites-list">
+                    <div class="favorite-item" data-text="مرحبا، كيف حالك؟">
+                        <span>مرحبا، كيف حالك؟</span>
+                        <button class="use-favorite">استخدم</button>
+                    </div>
+                    <div class="favorite-item" data-text="بكم هذا؟">
+                        <span>بكم هذا؟</span>
+                        <button class="use-favorite">استخدم</button>
+                    </div>
+                    <div class="favorite-item" data-text="أين الفندق؟">
+                        <span>أين الفندق؟</span>
+                        <button class="use-favorite">استخدم</button>
+                    </div>
+                    <div class="favorite-item" data-text="شكراً لك">
+                        <span>شكراً لك</span>
+                        <button class="use-favorite">استخدم</button>
+                    </div>
+                </div>
+                <button id="add-favorite" class="add-favorite-btn">+ إضافة للمفضلة</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
