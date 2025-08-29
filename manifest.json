@@ -1,0 +1,30 @@
+{
+  "name": "تطبيق الترجمة الفورية",
+  "short_name": "ترجمة فورية",
+  "description": "تطبيق الترجمة الصوتية الفورية - تحدث بأي لغة واحصل على الترجمة فوراً",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4CAF50",
+  "orientation": "portrait",
+  "scope": "./",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiM0Q0FGNTASCZ8L3JlY3Q+CjxwYXRoIGQ9Ik05NiA0OEM4MS45MDg2IDQ4IDcwLjUgNTkuNDA4NiA3MC41IDczLjVWMTE4LjVDNzAuNSAxMzIuNTkxIDgxLjkwODYgMTQ0IDk2IDE0NEMxMTAuMDkxIDE0NCAxMjEuNSAxMzIuNTkxIDEyMS41IDExOC41VjczLjVDMTIxLjUgNTkuNDA4NiAxMTAuMDkxIDQ4IDk2IDQ4WiIgZmlsbD0id2hpdGUiLz4KPHA+YXRoIGQ9Ik0xNDQgOTZDMTQ0IDEyMi41MSAxMjIuNTEgMTQ0IDk2IDE0NEM2OS40OSAxNDQgNDggMTIyLjUxIDQ4IDk2SDU2QzU2IDExOC4wOTEgNzMuOTA4NiAxMzYgOTYgMTM2QzExOC4wOTEgMTM2IDEzNiAxMTguMDkxIDEzNiA5NkgxNDRaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNOTYgMTUyVjE2OCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSI4IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPHA+YXRoIGQ9Ik04MCA1NkgxMTIiIHN0cm9rZT0iIzRDQUY1MCIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPHA+YXRoIGQ9Ik04MCA3Mkg4OCIgc3Ryb2tlPSIjNENBRjUwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8cGF0aCBkPSJNMTA0IDcySDExMiIgc3Ryb2tlPSIjNENBRjUwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iNjQiIGZpbGw9IiM0Q0FGNTASCZ8L3JlY3Q+CjxwYXRoIGQ9Ik0yNTYgMTI4QzIxNy43NTcgMTI4IDE4NiAxNTkuNzU3IDE4NiAxOThWMzE0QzE4NiAzNTIuMjQzIDIxNy43NTcgMzg0IDI1NiAzODRDMjk0LjI0MyAzODQgMzI2IDM1Mi4yNDMgMzI2IDMxNFYxOThDMzI2IDE1OS43NTcgMjk0LjI0MyAxMjggMjU2IDEyOFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0zODQgMjU2QzM4NCAzMjYuNjkyIDMyNi42OTIgMzg0IDI1NiAzODRDMTg1LjMwOCAzODQgMTI4IDMyNi42OTIgMTI4IDI1NkgxNDRDMTQ0IDMxNy44NTEgMTk0LjE0OSAzNjggMjU2IDM2OEMzMTcuODUxIDM2OCAzNjggMzE3Ljg1MSAzNjggMjU2SDM4NFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yNTYgNDA4VjQ0OCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxwYXRoIGQ9Ik0yMDggMTQ0SDMwNCIgc3Ryb2tlPSIjNENBRjUwIiBzdHJva2Utd2lkdGg9IjEyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPHA+YXRoIGQ9Ik0yMDggMTkySDIzMiIgc3Ryb2tlPSIjNENBRjUwIiBzdHJva2Utd2lkdGg9IjEyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPHA+YXRoIGQ9Ik0yODAgMTkySDMwNCIgc3Ryb2tlPSIjNENBRjUwIiBzdHJva2Utd2lkdGg9IjEyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+Cg==",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
