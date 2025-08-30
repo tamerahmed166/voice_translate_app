@@ -38,6 +38,7 @@ class VoiceTranslateApp {
         this.recognition = null;
         this.synthesis = window.speechSynthesis;
         this.favorites = this.loadFavorites();
+        this.debounceTimer = null;
         this.checkMobileSupport();
         this.init();
     }
@@ -123,30 +124,43 @@ class VoiceTranslateApp {
         this.elements.sourceLang.addEventListener('change', () => {
             this.updateRecognitionLanguage();
             if (this.elements.sourceText.value.trim()) {
-                this.translateText();
+                this.debouncedTranslate();
             }
         });
         
         this.elements.targetLang.addEventListener('change', () => {
             if (this.elements.sourceText.value.trim()) {
-                this.translateText();
+                this.debouncedTranslate();
             }
         });
         
-        // ترجمة تلقائية عند الكتابة مع التصحيح الإملائي
+        // ترجمة تلقائية عند الكتابة مع نظام debounce محسن
         this.elements.sourceText.addEventListener('input', () => {
-            clearTimeout(this.translateTimeout);
-            this.translateTimeout = setTimeout(() => {
+            this.updateCharCounter();
+            const text = this.elements.sourceText.value.trim();
+            if (!text) {
+                this.elements.translatedText.textContent = 'الترجمة ستظهر هنا...';
+                this.elements.translatedText.classList.remove('has-content');
+                return;
+            }
+            this.debouncedTranslate();
+        });
+        
+        // ترجمة فورية عند الضغط على Enter
+        this.elements.sourceText.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 if (this.elements.sourceText.value.trim()) {
-                    // تطبيق التصحيح الإملائي التلقائي
-                    this.autoSpellCheck();
                     this.translateText();
                 }
-            }, 1000);
+            }
         });
         
         // إضافة للمفضلة
         this.elements.addFavoriteBtn.addEventListener('click', () => this.addToFavorites());
+        
+        // إعداد نظام debounce
+        this.setupDebounce();
         
         // استخدام العبارات المفضلة
         this.elements.favoritesList.addEventListener('click', (e) => {
@@ -346,6 +360,45 @@ class VoiceTranslateApp {
         }
     }
 
+    // إعداد نظام debounce للترجمة
+    setupDebounce() {
+        this.debouncedTranslate = this.debounce(this.translateText.bind(this), 500);
+    }
+
+    // وظيفة debounce لتقليل عدد استدعاءات API
+    debounce(func, delay) {
+        return (...args) => {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
+        };
+    }
+
+    // تحديث عداد الأحرف
+    updateCharCounter() {
+        const text = this.elements.sourceText.value;
+        const charCount = text.length;
+        const maxChars = 5000; // الحد الأقصى للأحرف
+        
+        let counterElement = document.querySelector('.char-counter');
+        if (!counterElement) {
+            counterElement = document.createElement('div');
+            counterElement.className = 'char-counter';
+            this.elements.sourceText.parentElement.appendChild(counterElement);
+        }
+        
+        counterElement.textContent = `${charCount}/${maxChars}`;
+        
+        if (charCount > maxChars * 0.9) {
+            counterElement.style.color = '#ff6b6b';
+        } else if (charCount > maxChars * 0.7) {
+            counterElement.style.color = '#ffa500';
+        } else {
+            counterElement.style.color = '#666';
+        }
+    }
+
     async translateText() {
         const text = this.elements.sourceText.value.trim();
         if (!text) {
@@ -358,13 +411,20 @@ class VoiceTranslateApp {
 
         this.updateStatus('جاري الترجمة...');
         this.elements.translatedText.textContent = 'جاري الترجمة...';
+        this.elements.translatedText.setAttribute('placeholder', 'جاري الترجمة...');
         
         try {
             const sourceLang = this.elements.sourceLang.value;
             const targetLang = this.elements.targetLang.value;
             
-            // محاكاة API الترجمة - في التطبيق الحقيقي ستستخدم Google Translate API
-            const translatedText = await this.mockTranslateAPI(text, sourceLang, targetLang);
+            // استخدام API الترجمة الحقيقي
+            let translatedText;
+            try {
+                translatedText = await this.useRealTranslationAPI(text, sourceLang, targetLang);
+            } catch (apiError) {
+                console.warn('فشل في استخدام API الحقيقي، التبديل للمحاكاة:', apiError);
+                translatedText = await this.mockTranslateAPI(text, sourceLang, targetLang);
+            }
             
             this.elements.translatedText.textContent = translatedText;
             this.elements.translatedText.classList.add('has-content');
@@ -382,6 +442,8 @@ class VoiceTranslateApp {
         } catch (error) {
             this.updateStatus('خطأ في الترجمة: ' + error.message, 'error');
             this.elements.translatedText.textContent = 'حدث خطأ في الترجمة';
+        } finally {
+            this.elements.translatedText.setAttribute('placeholder', 'الترجمة');
         }
     }
 
@@ -692,21 +754,32 @@ class VoiceTranslateApp {
         return text;
     }
 
+    // وظيفة التشغيل الصوتي المحسنة
     speakTranslation() {
         const text = this.elements.translatedText.textContent;
         if (!text || text === 'الترجمة ستظهر هنا...' || text === 'جاري الترجمة...') {
+            this.updateStatus('لا يوجد نص للتشغيل', 'error');
             return;
         }
         
+        // إيقاف أي تشغيل صوتي حالي
         if (this.synthesis.speaking) {
             this.synthesis.cancel();
+            this.elements.speakBtn.querySelector('.speak-text').textContent = 'استمع للترجمة';
+            this.updateStatus('تم إيقاف التشغيل الصوتي');
+            return;
+        }
+        
+        // التحقق من دعم التشغيل الصوتي
+        if (!this.synthesis) {
+            this.updateStatus('التشغيل الصوتي غير مدعوم في هذا المتصفح', 'error');
             return;
         }
         
         const utterance = new SpeechSynthesisUtterance(text);
         const targetLang = this.elements.targetLang.value;
         
-        // تحديد اللغة للنطق
+        // تحديد اللغة للنطق مع دعم أفضل للهجات
         const langMap = {
             'ar': 'ar-SA',
             'en': 'en-US',
@@ -716,46 +789,123 @@ class VoiceTranslateApp {
             'it': 'it-IT',
             'ja': 'ja-JP',
             'ko': 'ko-KR',
-            'zh': 'zh-CN'
+            'zh': 'zh-CN',
+            'pt': 'pt-BR',
+            'ru': 'ru-RU',
+            'hi': 'hi-IN',
+            'tr': 'tr-TR'
         };
         
         utterance.lang = langMap[targetLang] || 'en-US';
-        utterance.rate = 0.8;
-        utterance.pitch = 1;
+        
+        // تحسين إعدادات النطق حسب اللغة
+        if (targetLang === 'ar') {
+            utterance.rate = 0.7; // أبطأ للعربية
+            utterance.pitch = 1.1;
+        } else if (targetLang === 'zh' || targetLang === 'ja' || targetLang === 'ko') {
+            utterance.rate = 0.8; // متوسط للغات الآسيوية
+            utterance.pitch = 1.0;
+        } else {
+            utterance.rate = 0.9; // عادي للغات الأخرى
+            utterance.pitch = 1.0;
+        }
+        
+        utterance.volume = 1.0;
         
         utterance.onstart = () => {
-            this.elements.speakBtn.querySelector('.speak-text').textContent = 'جاري النطق...';
+            this.elements.speakBtn.querySelector('.speak-text').textContent = 'إيقاف النطق';
+            this.elements.speakBtn.classList.add('speaking');
             this.updateStatus('جاري نطق الترجمة...');
         };
         
         utterance.onend = () => {
             this.elements.speakBtn.querySelector('.speak-text').textContent = 'استمع للترجمة';
-            this.updateStatus('جاهز للاستخدام');
+            this.elements.speakBtn.classList.remove('speaking');
+            this.updateStatus('انتهى التشغيل الصوتي');
         };
         
-        utterance.onerror = () => {
-            this.updateStatus('خطأ في نطق النص', 'error');
+        utterance.onerror = (event) => {
+            console.error('خطأ في التشغيل الصوتي:', event.error);
+            this.updateStatus('خطأ في نطق النص: ' + event.error, 'error');
             this.elements.speakBtn.querySelector('.speak-text').textContent = 'استمع للترجمة';
+            this.elements.speakBtn.classList.remove('speaking');
         };
         
-        this.synthesis.speak(utterance);
+        utterance.onpause = () => {
+            this.updateStatus('تم إيقاف التشغيل الصوتي مؤقتاً');
+        };
+        
+        utterance.onresume = () => {
+            this.updateStatus('تم استئناف التشغيل الصوتي');
+        };
+        
+        try {
+            this.synthesis.speak(utterance);
+        } catch (error) {
+            console.error('خطأ في بدء التشغيل الصوتي:', error);
+            this.updateStatus('فشل في بدء التشغيل الصوتي', 'error');
+            this.elements.speakBtn.querySelector('.speak-text').textContent = 'استمع للترجمة';
+            this.elements.speakBtn.classList.remove('speaking');
+        }
     }
 
+    // وظيفة النسخ المحسنة
     copyTranslation() {
         const text = this.elements.translatedText.textContent;
         if (!text || text === 'الترجمة ستظهر هنا...' || text === 'جاري الترجمة...') {
+            this.updateStatus('لا يوجد نص للنسخ', 'error');
             return;
         }
         
-        navigator.clipboard.writeText(text).then(() => {
-            this.updateStatus('تم نسخ النص بنجاح', 'success');
-            this.elements.copyBtn.textContent = 'تم النسخ ✓';
-            setTimeout(() => {
-                this.elements.copyBtn.textContent = 'نسخ';
-            }, 2000);
-        }).catch(() => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                this.updateStatus('تم نسخ النص بنجاح ✓', 'success');
+                // تأثير بصري للزر
+                this.elements.copyBtn.classList.add('copied');
+                const originalText = this.elements.copyBtn.textContent;
+                this.elements.copyBtn.textContent = 'تم النسخ ✓';
+                setTimeout(() => {
+                    this.elements.copyBtn.textContent = originalText;
+                    this.elements.copyBtn.classList.remove('copied');
+                }, 2000);
+            }).catch(() => {
+                this.fallbackCopyText(text);
+            });
+        } else {
+            this.fallbackCopyText(text);
+        }
+    }
+
+    // وظيفة النسخ البديلة للمتصفحات القديمة
+    fallbackCopyText(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                this.updateStatus('تم نسخ النص بنجاح ✓', 'success');
+                this.elements.copyBtn.classList.add('copied');
+                const originalText = this.elements.copyBtn.textContent;
+                this.elements.copyBtn.textContent = 'تم النسخ ✓';
+                setTimeout(() => {
+                    this.elements.copyBtn.textContent = originalText;
+                    this.elements.copyBtn.classList.remove('copied');
+                }, 2000);
+            } else {
+                this.updateStatus('فشل في نسخ النص', 'error');
+            }
+        } catch (err) {
             this.updateStatus('فشل في نسخ النص', 'error');
-        });
+        } finally {
+            document.body.removeChild(textArea);
+        }
     }
 
     clearText() {
