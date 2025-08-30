@@ -324,15 +324,17 @@ main {
     left: 0;
     right: 0;
     background: white;
-    border-radius: 10px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    margin-top: 5px;
+    margin-top: 3px;
     overflow: hidden;
+    min-width: 140px;
+    width: auto;
 }
 
 .image-capture-container.active .image-capture-menu {
@@ -342,14 +344,16 @@ main {
 }
 
 .menu-item {
-    padding: 12px 16px;
+    padding: 8px 12px;
     color: #333;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     font-weight: 500;
+    font-size: 0.9rem;
+    white-space: nowrap;
 }
 
 .menu-item:hover {
@@ -358,11 +362,11 @@ main {
 }
 
 .menu-item:first-child {
-    border-radius: 10px 10px 0 0;
+    border-radius: 8px 8px 0 0;
 }
 
 .menu-item:last-child {
-    border-radius: 0 0 10px 10px;
+    border-radius: 0 0 8px 8px;
 }
 
 /* Smart Text Selection Modal Styles */
@@ -682,6 +686,19 @@ main {
     .language-group select {
         min-width: 150px;
     }
+    
+    /* تحسينات القائمة المنسدلة للأجهزة اللوحية */
+    .image-capture-menu {
+        min-width: 120px;
+        border-radius: 6px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+    }
+    
+    .menu-item {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        gap: 5px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -706,6 +723,24 @@ main {
     .control-btn {
         width: 100%;
         max-width: 200px;
+    }
+    
+    /* تحسينات القائمة المنسدلة للهواتف المحمولة */
+    .image-capture-menu {
+        min-width: 110px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-top: 2px;
+    }
+    
+    .menu-item {
+        padding: 5px 8px;
+        font-size: 0.8rem;
+        gap: 4px;
+    }
+    
+    .dropdown-arrow {
+        font-size: 0.7rem;
     }
 }
 
