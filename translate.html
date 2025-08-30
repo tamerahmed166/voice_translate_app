@@ -5,404 +5,314 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مترجم الصوت الذكي - Voice Translator</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#137fec">
-    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
-    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <meta name="theme-color" content="#667eea">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="مترجم الصوت">
     <link rel="apple-touch-icon" href="icon-192x192.png">
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <style type="text/tailwindcss">
-        :root {
-            --primary-color: #137fec;
-        }
-    </style>
     <style>
-        body {
-            min-height: max(884px, 100dvh);
-            font-family: 'Cairo', 'Inter', 'Noto Sans', sans-serif;
+        .header-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 0;
         }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        
+        .back-btn, .login-btn {
+            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(102, 126, 234, 0.3);
         }
-        /* Custom styles for Arabic text */
-        .arabic-text {
-            font-family: 'Cairo', 'Noto Sans Arabic', sans-serif;
+        
+        .back-btn:hover, .login-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
         }
-        /* Hide elements initially for camera support check */
-        .camera-option {
-            display: block;
-        }
-        .camera-option.hidden {
-            display: none !important;
+        
+        @media (max-width: 768px) {
+            .header-nav {
+                margin-bottom: 15px;
+            }
+            
+            .back-btn, .login-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-50 arabic-text">
-    <div class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden" style='font-family: "Cairo", "Inter", "Noto Sans", sans-serif;'>
-        <div class="flex flex-col">
-            <!-- Header -->
-            <header class="bg-white p-4">
-                <div class="flex items-center justify-between">
-                    <a href="index.html" class="flex h-12 w-12 items-center justify-center rounded-full hover:bg-gray-100" title="العودة للرئيسية">
-                        <span class="material-symbols-outlined text-gray-600">home</span>
-                    </a>
-                    <h1 class="text-xl font-bold text-gray-900">مترجم الصوت</h1>
-                    <a href="settings.html" class="flex h-12 w-12 items-center justify-center rounded-full hover:bg-gray-100" title="الإعدادات">
-                        <span class="material-symbols-outlined text-gray-600">settings</span>
-                    </a>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-nav">
+                <a href="index.html" class="back-btn" title="العودة للرئيسية">🏠 الرئيسية</a>
+                <div style="display: flex; gap: 10px;">
+                    <a href="settings.html" class="login-btn" title="الإعدادات">⚙️ الإعدادات</a>
+                    <a href="login.html" class="login-btn" title="تسجيل الدخول">👤 تسجيل الدخول</a>
                 </div>
-            </header>
+            </div>
+            <h1>🎤 مترجم الصوت الذكي</h1>
+            <p>ترجمة فورية بالصوت والنص مع ذكاء اصطناعي متقدم</p>
+        </header>
 
-            <!-- Main Content -->
-            <main class="flex-grow p-4 space-y-6 pb-8">
-                <!-- Language Selector -->
-                <div class="flex items-center justify-center p-4 rounded-lg bg-white border border-gray-200 shadow-sm">
-                    <div class="flex-1 text-center">
-                        <select id="source-lang" class="w-full text-center font-semibold text-[var(--primary-color)] py-2 border-b-2 border-[var(--primary-color)] bg-transparent focus:outline-none">
-                            <option value="ar">العربية</option>
-                            <option value="en">English</option>
-                            <option value="fr">Français</option>
-                            <option value="es">Español</option>
-                            <option value="de">Deutsch</option>
-                            <option value="it">Italiano</option>
-                            <option value="pt">Português</option>
-                            <option value="ru">Русский</option>
-                            <option value="ja">日本語</option>
-                            <option value="ko">한국어</option>
-                            <option value="zh">中文</option>
-                            <option value="hi">हिन्दी</option>
-                            <option value="tr">Türkçe</option>
-                            <option value="nl">Nederlands</option>
-                            <option value="sv">Svenska</option>
-                            <option value="da">Dansk</option>
-                            <option value="no">Norsk</option>
-                            <option value="fi">Suomi</option>
-                            <option value="pl">Polski</option>
-                            <option value="cs">Čeština</option>
-                            <option value="hu">Magyar</option>
-                            <option value="ro">Română</option>
-                            <option value="bg">Български</option>
-                            <option value="hr">Hrvatski</option>
-                            <option value="sk">Slovenčina</option>
-                            <option value="sl">Slovenščina</option>
-                            <option value="et">Eesti</option>
-                            <option value="lv">Latviešu</option>
-                            <option value="lt">Lietuvių</option>
-                            <option value="mt">Malti</option>
-                            <option value="ga">Gaeilge</option>
-                            <option value="cy">Cymraeg</option>
-                            <option value="eu">Euskera</option>
-                            <option value="ca">Català</option>
-                            <option value="gl">Galego</option>
-                            <option value="is">Íslenska</option>
-                            <option value="mk">Македонски</option>
-                            <option value="sq">Shqip</option>
-                            <option value="sr">Српски</option>
-                            <option value="bs">Bosanski</option>
-                            <option value="me">Crnogorski</option>
-                            <option value="he">עברית</option>
-                            <option value="fa">فارسی</option>
-                            <option value="ur">اردو</option>
-                            <option value="bn">বাংলা</option>
-                            <option value="ta">தமிழ்</option>
-                            <option value="te">తెలుగు</option>
-                            <option value="ml">മലയാളം</option>
-                            <option value="kn">ಕನ್ನಡ</option>
-                            <option value="gu">ગુજરાતી</option>
-                            <option value="pa">ਪੰਜਾਬੀ</option>
-                            <option value="or">ଓଡ଼ିଆ</option>
-                            <option value="as">অসমীয়া</option>
-                            <option value="ne">नेपाली</option>
-                            <option value="si">සිංහල</option>
-                            <option value="my">မြန်မာ</option>
-                            <option value="km">ខ្មែរ</option>
-                            <option value="lo">ລາວ</option>
-                            <option value="ka">ქართული</option>
-                            <option value="hy">Հայերեն</option>
-                            <option value="az">Azərbaycan</option>
-                            <option value="kk">Қазақ</option>
-                            <option value="ky">Кыргыз</option>
-                            <option value="uz">O'zbek</option>
-                            <option value="tg">Тоҷикӣ</option>
-                            <option value="mn">Монгол</option>
-                            <option value="th">ไทย</option>
-                            <option value="vi">Tiếng Việt</option>
-                            <option value="id">Bahasa Indonesia</option>
-                            <option value="ms">Bahasa Melayu</option>
-                            <option value="tl">Filipino</option>
-                            <option value="sw">Kiswahili</option>
-                            <option value="am">አማርኛ</option>
-                            <option value="yo">Yorùbá</option>
-                            <option value="ig">Igbo</option>
-                            <option value="ha">Hausa</option>
-                            <option value="zu">isiZulu</option>
-                            <option value="af">Afrikaans</option>
-                        </select>
-                    </div>
-                    <div class="p-2 rounded-full bg-gray-100 mx-2">
-                        <button id="swap-languages" data-action="swap" title="تبديل اللغات">
-                            <span class="material-symbols-outlined text-gray-600">swap_horiz</span>
-                        </button>
-                    </div>
-                    <div class="flex-1 text-center">
-                        <select id="target-lang" class="w-full text-center font-semibold text-gray-500 py-2 bg-transparent focus:outline-none">
-                            <option value="en">English</option>
-                            <option value="ar">العربية</option>
-                            <option value="fr">Français</option>
-                            <option value="es">Español</option>
-                            <option value="de">Deutsch</option>
-                            <option value="it">Italiano</option>
-                            <option value="pt">Português</option>
-                            <option value="ru">Русский</option>
-                            <option value="ja">日本語</option>
-                            <option value="ko">한국어</option>
-                            <option value="zh">中文</option>
-                            <option value="hi">हिन्दी</option>
-                            <option value="tr">Türkçe</option>
-                            <option value="nl">Nederlands</option>
-                            <option value="sv">Svenska</option>
-                            <option value="da">Dansk</option>
-                            <option value="no">Norsk</option>
-                            <option value="fi">Suomi</option>
-                            <option value="pl">Polski</option>
-                            <option value="cs">Čeština</option>
-                            <option value="hu">Magyar</option>
-                            <option value="ro">Română</option>
-                            <option value="bg">Български</option>
-                            <option value="hr">Hrvatski</option>
-                            <option value="sk">Slovenčina</option>
-                            <option value="sl">Slovenščina</option>
-                            <option value="et">Eesti</option>
-                            <option value="lv">Latviešu</option>
-                            <option value="lt">Lietuvių</option>
-                            <option value="mt">Malti</option>
-                            <option value="ga">Gaeilge</option>
-                            <option value="cy">Cymraeg</option>
-                            <option value="eu">Euskera</option>
-                            <option value="ca">Català</option>
-                            <option value="gl">Galego</option>
-                            <option value="is">Íslenska</option>
-                            <option value="mk">Македонски</option>
-                            <option value="sq">Shqip</option>
-                            <option value="sr">Српски</option>
-                            <option value="bs">Bosanski</option>
-                            <option value="me">Crnogorski</option>
-                            <option value="he">עברית</option>
-                            <option value="fa">فارسی</option>
-                            <option value="ur">اردو</option>
-                            <option value="bn">বাংলা</option>
-                            <option value="ta">தமிழ்</option>
-                            <option value="te">తెలుగు</option>
-                            <option value="ml">മലയാളം</option>
-                            <option value="kn">ಕನ್ನಡ</option>
-                            <option value="gu">ગુજરાતી</option>
-                            <option value="pa">ਪੰਜਾਬੀ</option>
-                            <option value="or">ଓଡ଼ିଆ</option>
-                            <option value="as">অসমীয়া</option>
-                            <option value="ne">नेपाली</option>
-                            <option value="si">සිංහල</option>
-                            <option value="my">မြန်မာ</option>
-                            <option value="km">ខ្មែរ</option>
-                            <option value="lo">ລາວ</option>
-                            <option value="ka">ქართული</option>
-                            <option value="hy">Հայերեն</option>
-                            <option value="az">Azərbaycan</option>
-                            <option value="kk">Қазақ</option>
-                            <option value="ky">Кыргыз</option>
-                            <option value="uz">O'zbek</option>
-                            <option value="tg">Тоҷикӣ</option>
-                            <option value="mn">Монгол</option>
-                            <option value="th">ไทย</option>
-                            <option value="vi">Tiếng Việt</option>
-                            <option value="id">Bahasa Indonesia</option>
-                            <option value="ms">Bahasa Melayu</option>
-                            <option value="tl">Filipino</option>
-                            <option value="sw">Kiswahili</option>
-                            <option value="am">አማርኛ</option>
-                            <option value="yo">Yorùbá</option>
-                            <option value="ig">Igbo</option>
-                            <option value="ha">Hausa</option>
-                            <option value="zu">isiZulu</option>
-                            <option value="af">Afrikaans</option>
-                        </select>
-                    </div>
+        <main>
+            <div class="language-selector">
+                <div class="language-group">
+                    <label for="source-lang">اللغة المصدر:</label>
+                    <select id="source-lang">
+                        <option value="ar">العربية</option>
+                        <option value="en">English</option>
+                        <option value="fr">Français</option>
+                        <option value="es">Español</option>
+                        <option value="de">Deutsch</option>
+                        <option value="it">Italiano</option>
+                        <option value="pt">Português</option>
+                        <option value="ru">Русский</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="zh">中文</option>
+                        <option value="hi">हिन्दी</option>
+                        <option value="tr">Türkçe</option>
+                        <option value="nl">Nederlands</option>
+                        <option value="sv">Svenska</option>
+                        <option value="da">Dansk</option>
+                        <option value="no">Norsk</option>
+                        <option value="fi">Suomi</option>
+                        <option value="pl">Polski</option>
+                        <option value="cs">Čeština</option>
+                        <option value="hu">Magyar</option>
+                        <option value="ro">Română</option>
+                        <option value="bg">Български</option>
+                        <option value="hr">Hrvatski</option>
+                        <option value="sk">Slovenčina</option>
+                        <option value="sl">Slovenščina</option>
+                        <option value="et">Eesti</option>
+                        <option value="lv">Latviešu</option>
+                        <option value="lt">Lietuvių</option>
+                        <option value="mt">Malti</option>
+                        <option value="ga">Gaeilge</option>
+                        <option value="cy">Cymraeg</option>
+                        <option value="eu">Euskera</option>
+                        <option value="ca">Català</option>
+                        <option value="gl">Galego</option>
+                        <option value="is">Íslenska</option>
+                        <option value="mk">Македонски</option>
+                        <option value="sq">Shqip</option>
+                        <option value="sr">Српски</option>
+                        <option value="bs">Bosanski</option>
+                        <option value="me">Crnogorski</option>
+                        <option value="he">עברית</option>
+                        <option value="fa">فارسی</option>
+                        <option value="ur">اردو</option>
+                        <option value="bn">বাংলা</option>
+                        <option value="ta">தமிழ்</option>
+                        <option value="te">తెలుగు</option>
+                        <option value="ml">മലയാളം</option>
+                        <option value="kn">ಕನ್ನಡ</option>
+                        <option value="gu">ગુજરાતી</option>
+                        <option value="pa">ਪੰਜਾਬੀ</option>
+                        <option value="or">ଓଡ଼ିଆ</option>
+                        <option value="as">অসমীয়া</option>
+                        <option value="ne">नेपाली</option>
+                        <option value="si">සිංහල</option>
+                        <option value="my">မြန်မာ</option>
+                        <option value="km">ខ្មែរ</option>
+                        <option value="lo">ລາວ</option>
+                        <option value="ka">ქართული</option>
+                        <option value="hy">Հայերեն</option>
+                        <option value="az">Azərbaycan</option>
+                        <option value="kk">Қазақ</option>
+                        <option value="ky">Кыргыз</option>
+                        <option value="uz">O'zbek</option>
+                        <option value="tg">Тоҷикӣ</option>
+                        <option value="mn">Монгол</option>
+                        <option value="th">ไทย</option>
+                        <option value="vi">Tiếng Việt</option>
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="ms">Bahasa Melayu</option>
+                        <option value="tl">Filipino</option>
+                        <option value="sw">Kiswahili</option>
+                        <option value="am">አማርኛ</option>
+                        <option value="yo">Yorùbá</option>
+                        <option value="ig">Igbo</option>
+                        <option value="ha">Hausa</option>
+                        <option value="zu">isiZulu</option>
+                        <option value="af">Afrikaans</option>
+                    </select>
                 </div>
 
-                <!-- Input Section -->
-                <div class="rounded-xl bg-white shadow-sm border border-gray-200">
-                    <div class="p-4">
-                        <textarea id="source-text" class="form-textarea w-full resize-none border-none bg-white p-0 text-gray-800 placeholder:text-gray-400 focus:ring-0 text-2xl" placeholder="اكتب النص هنا أو استخدم الميكروفون..." rows="4"></textarea>
-                        <div class="text-sm text-gray-400 mt-2">
+                <div class="swap-btn">
+                    <button id="swap-languages" title="تبديل اللغات">
+                        🔄
+                    </button>
+                </div>
+
+                <div class="language-group">
+                    <label for="target-lang">اللغة الهدف:</label>
+                    <select id="target-lang">
+                        <option value="en">English</option>
+                        <option value="ar">العربية</option>
+                        <option value="fr">Français</option>
+                        <option value="es">Español</option>
+                        <option value="de">Deutsch</option>
+                        <option value="it">Italiano</option>
+                        <option value="pt">Português</option>
+                        <option value="ru">Русский</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="zh">中文</option>
+                        <option value="hi">हिन्दी</option>
+                        <option value="tr">Türkçe</option>
+                        <option value="nl">Nederlands</option>
+                        <option value="sv">Svenska</option>
+                        <option value="da">Dansk</option>
+                        <option value="no">Norsk</option>
+                        <option value="fi">Suomi</option>
+                        <option value="pl">Polski</option>
+                        <option value="cs">Čeština</option>
+                        <option value="hu">Magyar</option>
+                        <option value="ro">Română</option>
+                        <option value="bg">Български</option>
+                        <option value="hr">Hrvatski</option>
+                        <option value="sk">Slovenčina</option>
+                        <option value="sl">Slovenščina</option>
+                        <option value="et">Eesti</option>
+                        <option value="lv">Latviešu</option>
+                        <option value="lt">Lietuvių</option>
+                        <option value="mt">Malti</option>
+                        <option value="ga">Gaeilge</option>
+                        <option value="cy">Cymraeg</option>
+                        <option value="eu">Euskera</option>
+                        <option value="ca">Català</option>
+                        <option value="gl">Galego</option>
+                        <option value="is">Íslenska</option>
+                        <option value="mk">Македонски</option>
+                        <option value="sq">Shqip</option>
+                        <option value="sr">Српски</option>
+                        <option value="bs">Bosanski</option>
+                        <option value="me">Crnogorski</option>
+                        <option value="he">עברית</option>
+                        <option value="fa">فارسی</option>
+                        <option value="ur">اردو</option>
+                        <option value="bn">বাংলা</option>
+                        <option value="ta">தமிழ்</option>
+                        <option value="te">తెలుగు</option>
+                        <option value="ml">മലയാളം</option>
+                        <option value="kn">ಕನ್ನಡ</option>
+                        <option value="gu">ગુજરાતી</option>
+                        <option value="pa">ਪੰਜਾਬੀ</option>
+                        <option value="or">ଓଡ଼ିଆ</option>
+                        <option value="as">অসমীয়া</option>
+                        <option value="ne">नेपाली</option>
+                        <option value="si">සිංහල</option>
+                        <option value="my">မြန်မာ</option>
+                        <option value="km">ខ្មែរ</option>
+                        <option value="lo">ລາວ</option>
+                        <option value="ka">ქართული</option>
+                        <option value="hy">Հայերեն</option>
+                        <option value="az">Azərbaycan</option>
+                        <option value="kk">Қазақ</option>
+                        <option value="ky">Кыргыз</option>
+                        <option value="uz">O'zbek</option>
+                        <option value="tg">Тоҷикӣ</option>
+                        <option value="mn">Монгол</option>
+                        <option value="th">ไทย</option>
+                        <option value="vi">Tiếng Việt</option>
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="ms">Bahasa Melayu</option>
+                        <option value="tl">Filipino</option>
+                        <option value="sw">Kiswahili</option>
+                        <option value="am">አማርኛ</option>
+                        <option value="yo">Yorùbá</option>
+                        <option value="ig">Igbo</option>
+                        <option value="ha">Hausa</option>
+                        <option value="zu">isiZulu</option>
+                        <option value="af">Afrikaans</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="translation-area">
+                <div class="input-section">
+                    <div class="text-area-container">
+                        <textarea id="source-text" placeholder="اكتب النص هنا أو استخدم الميكروفون للتسجيل الصوتي..."></textarea>
+                        <div class="char-counter">
                             <span id="char-count">0</span> / 5000
                         </div>
                     </div>
-                    <div class="flex items-center justify-between border-t border-gray-200 p-2">
-                        <div class="flex items-center space-x-1">
-                            <button id="mic-btn" data-action="mic" class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-gray-100" title="تسجيل صوتي">
-                                <span class="material-symbols-outlined text-gray-600">mic</span>
-                                <span class="mic-text sr-only">اضغط للتسجيل</span>
+                    
+                    <div class="control-buttons">
+                        <button id="mic-btn" class="control-btn mic-btn" title="تسجيل صوتي">
+                            <span class="mic-icon">🎤</span>
+                            <span class="mic-text">اضغط للتسجيل</span>
+                        </button>
+                        
+                        <button id="clear-btn" class="control-btn" title="مسح النص">
+                            🗑️ مسح
+                        </button>
+                        
+                        <div class="image-capture-container">
+                            <button id="image-capture-btn" class="control-btn image-capture-btn" title="التقاط أو تحميل صورة">
+                                📷 صورة
+                                <span class="dropdown-arrow">▼</span>
                             </button>
-                            <!-- Enhanced Camera Button with Modern Design -->
-                            <div class="enhanced-camera-container relative">
-                                <button id="enhanced-camera-btn" class="enhanced-camera-button group relative flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300" title="أدوات الكاميرا والصور المتقدمة">
-                                    <span class="material-symbols-outlined text-xl group-hover:rotate-12 transition-transform duration-300">photo_camera</span>
-                                    <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
-                                </button>
-                                
-                                <!-- Enhanced Dropdown Menu -->
-                                <div id="enhanced-camera-menu" class="enhanced-camera-menu hidden absolute bottom-full left-0 mb-3 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 min-w-[280px] overflow-hidden">
-                                    <!-- Header -->
-                                    <div class="menu-header p-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white">
-                                        <div class="flex items-center justify-between">
-                                            <div class="flex items-center">
-                                                <span class="material-symbols-outlined mr-3 text-2xl">photo_camera</span>
-                                                <div>
-                                                    <h3 class="font-bold text-lg">أدوات الكاميرا</h3>
-                                                    <p class="text-xs opacity-90">اختر الطريقة المناسبة</p>
-                                                </div>
-                                            </div>
-                                            <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                                                <span class="material-symbols-outlined text-sm">auto_awesome</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Menu Items -->
-                                    <div class="menu-items">
-                                        <!-- Upload Option -->
-                                        <div class="enhanced-menu-item group p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 cursor-pointer border-b border-gray-100 transition-all duration-300" data-action="upload">
-                                            <div class="flex items-center">
-                                                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-blue-200 transition-colors">
-                                                    <span class="material-symbols-outlined text-blue-600 text-xl">upload</span>
-                                                </div>
-                                                <div class="flex-1">
-                                                    <h4 class="font-semibold text-gray-800 group-hover:text-blue-700">تحميل صورة</h4>
-                                                    <p class="text-sm text-gray-500">اختر صورة من معرض الصور</p>
-                                                    <div class="flex items-center mt-1">
-                                                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">سريع</span>
-                                                    </div>
-                                                </div>
-                                                <span class="material-symbols-outlined text-gray-400 group-hover:text-blue-500 transition-colors">arrow_forward_ios</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Camera Capture Option -->
-                                        <div class="enhanced-menu-item group p-4 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 cursor-pointer border-b border-gray-100 transition-all duration-300" data-action="camera">
-                                            <div class="flex items-center">
-                                                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-green-200 transition-colors">
-                                                    <span class="material-symbols-outlined text-green-600 text-xl">photo_camera</span>
-                                                </div>
-                                                <div class="flex-1">
-                                                    <h4 class="font-semibold text-gray-800 group-hover:text-green-700">التقاط صورة</h4>
-                                                    <p class="text-sm text-gray-500">استخدم كاميرا الجهاز للتصوير</p>
-                                                    <div class="flex items-center mt-1">
-                                                        <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">مباشر</span>
-                                                    </div>
-                                                </div>
-                                                <span class="material-symbols-outlined text-gray-400 group-hover:text-green-500 transition-colors">arrow_forward_ios</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Smart Scan Option -->
-                                        <div class="enhanced-menu-item group p-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 cursor-pointer transition-all duration-300" data-action="smart-scan">
-                                            <div class="flex items-center">
-                                                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-purple-200 transition-colors relative">
-                                                    <span class="material-symbols-outlined text-purple-600 text-xl">auto_awesome</span>
-                                                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
-                                                </div>
-                                                <div class="flex-1">
-                                                    <h4 class="font-semibold text-gray-800 group-hover:text-purple-700 flex items-center">
-                                                        مسح ذكي
-                                                        <span class="ml-2 text-xs bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full">AI</span>
-                                                    </h4>
-                                                    <p class="text-sm text-gray-500">كشف وترجمة النصوص تلقائياً</p>
-                                                    <div class="flex items-center mt-1">
-                                                        <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">ذكي</span>
-                                                    </div>
-                                                </div>
-                                                <span class="material-symbols-outlined text-gray-400 group-hover:text-purple-500 transition-colors">arrow_forward_ios</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Footer -->
-                                    <div class="p-3 bg-gray-50 text-center">
-                                        <p class="text-xs text-gray-500">اختر الطريقة الأنسب لاحتياجاتك</p>
-                                    </div>
+                            <div id="image-capture-menu" class="image-capture-menu">
+                                <div class="menu-item" data-action="upload">
+                                    📁 تحميل صورة
+                                </div>
+                                <div class="menu-item" data-action="camera">
+                                    📸 فتح الكاميرا
                                 </div>
                             </div>
                         </div>
-                        <button id="clear-btn" data-action="clear" class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-gray-100" title="مسح النص">
-                            <span class="material-symbols-outlined text-gray-600">close</span>
+                        
+                        <input type="file" id="image-input" accept="image/*" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="output-section">
+                    <div class="text-area-container">
+                        <div id="translated-text" class="translated-text">الترجمة ستظهر هنا...</div>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button id="speak-btn" class="control-btn" title="نطق الترجمة">
+                            🔊 نطق
+                        </button>
+                        
+                        <button id="copy-btn" class="control-btn" title="نسخ الترجمة">
+                            📋 نسخ
+                        </button>
+                        
+                        <button id="add-favorite" class="control-btn" title="إضافة للمفضلة">
+                            ⭐ مفضلة
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <!-- Output Section -->
-                <div class="rounded-xl bg-[var(--primary-color)] text-white shadow-sm">
-                    <div class="p-4 flex flex-col gap-4">
-                        <div id="translated-text" class="text-2xl min-h-[80px] flex-1">الترجمة ستظهر هنا...</div>
-                        <button id="add-favorite" data-action="save" class="flex items-center justify-center gap-2 bg-white text-[var(--primary-color)] font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition-colors w-full text-lg shadow">
-                            <span class="material-symbols-outlined">bookmark_add</span>
-                            حفظ الترجمة
-                        </button>
-                    </div>
-                    <div class="flex items-center justify-between border-t border-white/20 p-2">
-                        <div class="flex items-center space-x-1">
-                            <button id="speak-btn" data-action="speak" class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-white/10" title="نطق الترجمة">
-                                <span class="material-symbols-outlined">volume_up</span>
-                            </button>
-                            <button id="copy-btn" data-action="copy" class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-white/10" title="نسخ الترجمة">
-                                <span class="material-symbols-outlined">content_copy</span>
-                            </button>
-                            <button data-action="favorite" class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-white/10" title="إضافة للمفضلة">
-                                <span class="material-symbols-outlined">star</span>
-                            </button>
-                        </div>
-                        <button data-action="fullscreen" class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-white/10" title="ملء الشاشة">
-                            <span class="material-symbols-outlined">fullscreen</span>
-                        </button>
-                    </div>
+            <div class="status-bar">
+                <div id="status" class="status-text">جاهز للاستخدام</div>
+            </div>
+
+            <div class="favorites-section">
+                <h3>العبارات المفضلة</h3>
+                <div id="favorites-list" class="favorites-list">
+                    <!-- العبارات المفضلة ستظهر هنا -->
                 </div>
-
-                <!-- Status Bar -->
-                <div id="status" class="text-center text-sm text-gray-600 py-2">
-                    جاهز للاستخدام
-                </div>
-
-                <!-- Saved Phrases -->
-                <div class="space-y-3">
-                    <h2 class="text-lg font-semibold text-gray-800">العبارات المحفوظة</h2>
-                    <div id="favorites-list" class="grid grid-cols-2 gap-3">
-                        <div class="rounded-lg bg-white p-3 border border-gray-200 shadow-sm">
-                            <p class="font-medium text-gray-800">Hello</p>
-                            <p class="text-gray-500">مرحبا</p>
-                        </div>
-                        <div class="rounded-lg bg-white p-3 border border-gray-200 shadow-sm">
-                            <p class="font-medium text-gray-800">How are you?</p>
-                            <p class="text-gray-500">كيف حالك؟</p>
-                        </div>
-                        <div class="rounded-lg bg-white p-3 border border-gray-200 shadow-sm">
-                            <p class="font-medium text-gray-800">Thank you</p>
-                            <p class="text-gray-500">شكرا لك</p>
-                        </div>
-                        <div class="flex items-center justify-center rounded-lg bg-white p-3 border border-gray-200 shadow-sm text-gray-500 hover:bg-gray-100 cursor-pointer">
-                            <span class="material-symbols-outlined">arrow_forward</span>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-
-
+            </div>
+        </main>
     </div>
-
-    <!-- Hidden file input for image upload -->
-    <input type="file" id="image-input" accept="image/*" capture="environment" style="display: none;">
 
     <!-- Tesseract.js for OCR functionality -->
     <script src="https://unpkg.com/tesseract.js@v4.1.1/dist/tesseract.min.js"></script>
