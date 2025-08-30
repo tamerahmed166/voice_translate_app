@@ -86,6 +86,7 @@ class VoiceTranslateApp {
         this.setupEventListeners();
         this.setupSpeechRecognition();
         this.loadFavoritesToDOM();
+        this.checkCameraSupportOnInit();
         this.updateStatus('جاهز للاستخدام');
     }
 
@@ -1007,7 +1008,12 @@ class VoiceTranslateApp {
         // إيقاف أي تشغيل صوتي حالي
         if (this.synthesis.speaking) {
             this.synthesis.cancel();
-            this.elements.speakBtn.querySelector('.speak-text').textContent = 'استمع للترجمة';
+            const speakTextElement = this.elements.speakBtn.querySelector('.speak-text');
+            if (speakTextElement) {
+                speakTextElement.textContent = 'استمع للترجمة';
+            } else {
+                this.elements.speakBtn.innerHTML = '🔊 نطق';
+            }
             this.updateStatus('تم إيقاف التشغيل الصوتي');
             return;
         }
@@ -1055,13 +1061,23 @@ class VoiceTranslateApp {
         utterance.volume = 1.0;
         
         utterance.onstart = () => {
-            this.elements.speakBtn.querySelector('.speak-text').textContent = 'إيقاف النطق';
+            const speakTextElement = this.elements.speakBtn.querySelector('.speak-text');
+            if (speakTextElement) {
+                speakTextElement.textContent = 'إيقاف النطق';
+            } else {
+                this.elements.speakBtn.innerHTML = '🔊 إيقاف النطق';
+            }
             this.elements.speakBtn.classList.add('speaking');
             this.updateStatus('جاري نطق الترجمة...');
         };
         
         utterance.onend = () => {
-            this.elements.speakBtn.querySelector('.speak-text').textContent = 'استمع للترجمة';
+            const speakTextElement = this.elements.speakBtn.querySelector('.speak-text');
+            if (speakTextElement) {
+                speakTextElement.textContent = 'استمع للترجمة';
+            } else {
+                this.elements.speakBtn.innerHTML = '🔊 نطق';
+            }
             this.elements.speakBtn.classList.remove('speaking');
             this.updateStatus('انتهى التشغيل الصوتي');
         };
@@ -1069,7 +1085,12 @@ class VoiceTranslateApp {
         utterance.onerror = (event) => {
             console.error('خطأ في التشغيل الصوتي:', event.error);
             this.updateStatus('خطأ في نطق النص: ' + event.error, 'error');
-            this.elements.speakBtn.querySelector('.speak-text').textContent = 'استمع للترجمة';
+            const speakTextElement = this.elements.speakBtn.querySelector('.speak-text');
+            if (speakTextElement) {
+                speakTextElement.textContent = 'استمع للترجمة';
+            } else {
+                this.elements.speakBtn.innerHTML = '🔊 نطق';
+            }
             this.elements.speakBtn.classList.remove('speaking');
         };
         
@@ -1629,6 +1650,44 @@ class VoiceTranslateApp {
         }
     }
 
+    // فحص دعم الكاميرا عند تحميل الصفحة وإخفاء الخيار إذا لم تكن مدعومة
+    async checkCameraSupportOnInit() {
+        try {
+            // التحقق من دعم getUserMedia
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                this.hideCameraOption();
+                return;
+            }
+
+            // محاولة فحص الأذونات بدون طلب الوصول
+            try {
+                const permissions = await navigator.permissions.query({name: 'camera'});
+                if (permissions.state === 'denied') {
+                    this.hideCameraOption();
+                    return;
+                }
+            } catch (permError) {
+                // إذا فشل فحص الأذونات، نترك الخيار ظاهراً
+                console.log('لا يمكن فحص أذونات الكاميرا:', permError);
+            }
+
+            // إذا وصلنا هنا، فالكاميرا مدعومة على الأرجح
+            console.log('الكاميرا مدعومة');
+        } catch (error) {
+            console.error('خطأ في فحص دعم الكاميرا:', error);
+            this.hideCameraOption();
+        }
+    }
+
+    // إخفاء خيار الكاميرا من القائمة المنسدلة
+    hideCameraOption() {
+        const cameraMenuItem = document.querySelector('.menu-item[data-action="camera"]');
+        if (cameraMenuItem) {
+            cameraMenuItem.style.display = 'none';
+            console.log('تم إخفاء خيار الكاميرا لعدم دعمها');
+        }
+    }
+
     // وظيفة لمعالجة أخطاء الملفات
     handleFileError(error, fileName = '') {
         let errorMessage = 'خطأ في معالجة الملف';
@@ -1801,7 +1860,14 @@ class VoiceTranslateApp {
         if (action === 'upload') {
             this.triggerImageUpload();
         } else if (action === 'camera') {
-            this.openCamera();
+            // التحقق من دعم الكاميرا قبل فتحها
+            this.checkCameraSupport().then(isSupported => {
+                if (isSupported) {
+                    this.openCamera();
+                } else {
+                    this.updateStatus('الكاميرا غير متاحة على هذا الجهاز', 'error');
+                }
+            });
         }
     }
 
