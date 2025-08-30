@@ -97,6 +97,7 @@ class VoiceTranslateApp {
             copyBtn: document.getElementById('copy-btn'),
             imageUploadBtn: document.getElementById('image-upload-btn'),
             imageInput: document.getElementById('image-input'),
+            cameraBtn: document.getElementById('camera-btn'),
             sourceText: document.getElementById('source-text'),
             translatedText: document.getElementById('translated-text'),
             sourceLang: document.getElementById('source-lang'),
@@ -116,6 +117,7 @@ class VoiceTranslateApp {
         this.elements.copyBtn.addEventListener('click', () => this.copyTranslation());
         this.elements.imageUploadBtn.addEventListener('click', () => this.triggerImageUpload());
         this.elements.imageInput.addEventListener('change', (e) => this.handleImageUpload(e));
+        this.elements.cameraBtn.addEventListener('click', () => this.openCamera());
         
         // تبديل اللغات
         this.elements.swapBtn.addEventListener('click', () => this.swapLanguages());
@@ -1104,9 +1106,28 @@ class VoiceTranslateApp {
         const file = event.target.files[0];
         if (!file) return;
 
+        // التحقق من نوع الملف
         if (!file.type.startsWith('image/')) {
-            this.updateStatus('يرجى اختيار ملف صورة صحيح', 'error');
+            this.updateStatus('يرجى اختيار ملف صورة صحيح (JPG, PNG, GIF, WebP)', 'error');
             return;
+        }
+
+        // التحقق من حجم الملف (أقل من 10 ميجابايت)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            this.updateStatus('حجم الصورة كبير جداً. يرجى اختيار صورة أصغر من 10 ميجابايت', 'error');
+            return;
+        }
+
+        // التحقق من أبعاد الصورة
+        try {
+            const dimensions = await this.getImageDimensions(file);
+            if (dimensions.width < 50 || dimensions.height < 50) {
+                this.updateStatus('الصورة صغيرة جداً. يرجى اختيار صورة أكبر', 'error');
+                return;
+            }
+        } catch (error) {
+            console.error('خطأ في قراءة أبعاد الصورة:', error);
         }
 
         this.updateStatus('جاري معالجة الصورة...');
@@ -1115,26 +1136,51 @@ class VoiceTranslateApp {
             const extractedText = await this.extractTextFromImage(file);
             if (extractedText && extractedText.trim()) {
                 this.elements.sourceText.value = extractedText;
+                this.updateCharCounter(); // تحديث عداد الأحرف
                 this.updateStatus('تم استخراج النص من الصورة بنجاح', 'success');
+                
                 // تشغيل التصحيح التلقائي
                 this.autoSpellCheck();
-                // ترجمة تلقائية
-                setTimeout(() => this.translateText(), 1000);
+                
+                // ترجمة تلقائية مع debounce
+                if (this.debouncedTranslate) {
+                    this.debouncedTranslate();
+                } else {
+                    setTimeout(() => this.translateText(), 1000);
+                }
             } else {
-                this.updateStatus('لم يتم العثور على نص في الصورة', 'error');
+                this.updateStatus('لم يتم العثور على نص في الصورة. تأكد من وضوح النص في الصورة', 'error');
             }
         } catch (error) {
             console.error('خطأ في استخراج النص:', error);
-            this.updateStatus('حدث خطأ أثناء معالجة الصورة', 'error');
+            this.updateStatus(error.message || 'حدث خطأ أثناء معالجة الصورة', 'error');
         }
         
         // إعادة تعيين input
         event.target.value = '';
     }
 
+    // وظيفة للحصول على أبعاد الصورة
+    getImageDimensions(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                resolve({ width: img.width, height: img.height });
+                URL.revokeObjectURL(img.src);
+            };
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
     // وظيفة استخراج النص من الصورة باستخدام Tesseract.js
     async extractTextFromImage(file) {
         try {
+            // التحقق من وجود مكتبة Tesseract
+            if (typeof Tesseract === 'undefined') {
+                throw new Error('مكتبة Tesseract غير محملة. يرجى التأكد من الاتصال بالإنترنت.');
+            }
+            
             // تحديث حالة التقدم
             this.updateStatus('جاري تحليل الصورة...', 'info');
             
@@ -1176,11 +1222,19 @@ class VoiceTranslateApp {
             
             // استخدام Tesseract.js لاستخراج النص
             const language = isEnglishText ? 'eng' : 'ara+eng';
-            const { data: { text } } = await Tesseract.recognize(
+            
+            // إضافة timeout للعملية
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('انتهت مهلة معالجة الصورة')), 30000);
+            });
+            
+            const recognitionPromise = Tesseract.recognize(
                 processedImage,
                 language,
                 ocrOptions
             );
+            
+            const { data: { text } } = await Promise.race([recognitionPromise, timeoutPromise]);
             
             // تنظيف النص المستخرج
             const cleanedText = this.cleanExtractedText(text, isEnglishText);
@@ -1188,7 +1242,17 @@ class VoiceTranslateApp {
             return cleanedText;
         } catch (error) {
             console.error('خطأ في Tesseract.js:', error);
-            throw new Error('فشل في استخراج النص من الصورة');
+            
+            // رسائل خطأ مفصلة
+            if (error.message.includes('timeout') || error.message.includes('انتهت مهلة')) {
+                throw new Error('انتهت مهلة معالجة الصورة. يرجى المحاولة مرة أخرى.');
+            } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                throw new Error('خطأ في الشبكة. يرجى التحقق من الاتصال بالإنترنت.');
+            } else if (error.message.includes('Tesseract')) {
+                throw new Error('خطأ في تحميل مكتبة OCR. يرجى إعادة تحميل الصفحة.');
+            } else {
+                throw new Error('فشل في استخراج النص من الصورة: ' + error.message);
+            }
         }
     }
 
@@ -1282,11 +1346,206 @@ class VoiceTranslateApp {
         this.elements.status.textContent = message;
         this.elements.status.className = `status ${type}`;
         
-        if (type === 'success' || type === 'error') {
-            setTimeout(() => {
+        // إضافة أيقونات للرسائل
+        let icon = '';
+        switch(type) {
+            case 'success':
+                icon = '✅ ';
+                break;
+            case 'error':
+                icon = '❌ ';
+                break;
+            case 'warning':
+                icon = '⚠️ ';
+                break;
+            case 'info':
+            default:
+                icon = 'ℹ️ ';
+                break;
+        }
+        this.elements.status.textContent = icon + message;
+        
+        // إخفاء الرسالة بعد مدة مناسبة
+        const hideDelay = type === 'error' ? 8000 : type === 'success' ? 4000 : 5000;
+        setTimeout(() => {
+            if (this.elements.status.textContent === icon + message) {
                 this.elements.status.textContent = 'جاهز للاستخدام';
                 this.elements.status.className = 'status';
-            }, 3000);
+            }
+        }, hideDelay);
+        
+        // طباعة الرسالة في وحدة التحكم للتشخيص
+        console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+
+    // وظيفة للتحقق من دعم الكاميرا والميكروفون
+    async checkCameraSupport() {
+        try {
+            // التحقق من دعم getUserMedia
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('المتصفح لا يدعم الوصول للكاميرا والميكروفون');
+            }
+
+            // التحقق من الأذونات
+            const permissions = await navigator.permissions.query({name: 'camera'});
+            if (permissions.state === 'denied') {
+                throw new Error('تم رفض إذن الوصول للكاميرا');
+            }
+
+            return true;
+        } catch (error) {
+            console.error('خطأ في فحص دعم الكاميرا:', error);
+            this.updateStatus('الكاميرا غير متاحة: ' + error.message, 'warning');
+            return false;
+        }
+    }
+
+    // وظيفة لمعالجة أخطاء الملفات
+    handleFileError(error, fileName = '') {
+        let errorMessage = 'خطأ في معالجة الملف';
+        
+        if (fileName) {
+            errorMessage += ` "${fileName}"`;
+        }
+        
+        if (error.name === 'NotAllowedError') {
+            errorMessage = 'تم رفض الإذن للوصول للملف';
+        } else if (error.name === 'NotFoundError') {
+            errorMessage = 'الملف غير موجود';
+        } else if (error.name === 'SecurityError') {
+            errorMessage = 'خطأ أمني في الوصول للملف';
+        } else if (error.message) {
+            errorMessage += ': ' + error.message;
+        }
+        
+        this.updateStatus(errorMessage, 'error');
+        console.error('File Error:', error);
+    }
+
+    // وظيفة لفتح الكاميرا (تحديث من النسخة الاحتياطية)
+    async openCamera() {
+        try {
+            // التحقق من دعم الكاميرا أولاً
+            const isSupported = await this.checkCameraSupport();
+            if (!isSupported) {
+                return;
+            }
+
+            this.updateStatus('جاري فتح الكاميرا...', 'info');
+            
+            // طلب الوصول للكاميرا
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'environment' // الكاميرا الخلفية للهواتف
+                }
+            });
+
+            // إنشاء عنصر فيديو لعرض الكاميرا
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.autoplay = true;
+            video.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1000;
+                max-width: 90vw;
+                max-height: 90vh;
+                border: 3px solid #007bff;
+                border-radius: 10px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            `;
+
+            // إنشاء أزرار التحكم
+            const controls = document.createElement('div');
+            controls.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1001;
+                display: flex;
+                gap: 10px;
+            `;
+
+            const captureBtn = document.createElement('button');
+            captureBtn.textContent = '📸 التقاط صورة';
+            captureBtn.style.cssText = `
+                padding: 12px 24px;
+                background: #28a745;
+                color: white;
+                border: none;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 16px;
+            `;
+
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '❌ إغلاق';
+            closeBtn.style.cssText = `
+                padding: 12px 24px;
+                background: #dc3545;
+                color: white;
+                border: none;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 16px;
+            `;
+
+            controls.appendChild(captureBtn);
+            controls.appendChild(closeBtn);
+
+            // إضافة العناصر للصفحة
+            document.body.appendChild(video);
+            document.body.appendChild(controls);
+
+            // وظيفة التقاط الصورة
+            captureBtn.onclick = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+                    
+                    // إغلاق الكاميرا
+                    stream.getTracks().forEach(track => track.stop());
+                    document.body.removeChild(video);
+                    document.body.removeChild(controls);
+                    
+                    // معالجة الصورة الملتقطة
+                    await this.handleImageUpload({ target: { files: [file] } });
+                }, 'image/jpeg', 0.9);
+            };
+
+            // وظيفة الإغلاق
+            closeBtn.onclick = () => {
+                stream.getTracks().forEach(track => track.stop());
+                document.body.removeChild(video);
+                document.body.removeChild(controls);
+                this.updateStatus('تم إغلاق الكاميرا', 'info');
+            };
+
+            this.updateStatus('الكاميرا جاهزة - اضغط على زر التقاط الصورة', 'success');
+
+        } catch (error) {
+            this.handleFileError(error, 'الكاميرا');
+            
+            // رسائل خطأ محددة للكاميرا
+            if (error.name === 'NotAllowedError') {
+                this.updateStatus('يرجى السماح بالوصول للكاميرا من إعدادات المتصفح', 'error');
+            } else if (error.name === 'NotFoundError') {
+                this.updateStatus('لم يتم العثور على كاميرا متاحة', 'error');
+            } else if (error.name === 'NotReadableError') {
+                this.updateStatus('الكاميرا مستخدمة من تطبيق آخر', 'error');
+            } else {
+                this.updateStatus('خطأ في فتح الكاميرا: ' + error.message, 'error');
+            }
         }
     }
 }
