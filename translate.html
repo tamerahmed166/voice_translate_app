@@ -246,35 +246,92 @@
                                 <span class="material-symbols-outlined text-gray-600">mic</span>
                                 <span class="mic-text sr-only">اضغط للتسجيل</span>
                             </button>
-                            <div class="image-capture-container relative">
-                                <button id="image-capture-btn" data-action="camera" class="flex h-10 w-10 items-center justify-center rounded-md hover:bg-blue-50 hover:text-blue-600 transition-colors" title="التقاط أو تحميل صورة">
-                                    <span class="material-symbols-outlined text-gray-600">photo_camera</span>
+                            <!-- Enhanced Camera Button with Modern Design -->
+                            <div class="enhanced-camera-container relative">
+                                <button id="enhanced-camera-btn" class="enhanced-camera-button group relative flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300" title="أدوات الكاميرا والصور المتقدمة">
+                                    <span class="material-symbols-outlined text-xl group-hover:rotate-12 transition-transform duration-300">photo_camera</span>
+                                    <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
                                 </button>
-                                <div id="image-capture-menu" class="image-capture-menu hidden absolute bottom-full left-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px]">
-                                    <div class="menu-header p-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
-                                        <span class="material-symbols-outlined mr-2">photo_camera</span>
-                                        <span class="font-semibold">خيارات الصورة</span>
-                                    </div>
-                                    <div class="menu-item p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100" data-action="upload">
-                                        <span class="material-symbols-outlined text-blue-600 mr-2">upload</span>
-                                        <div class="flex flex-col">
-                                            <span class="font-medium">تحميل صورة</span>
-                                            <span class="text-xs text-gray-500">من معرض الصور</span>
+                                
+                                <!-- Enhanced Dropdown Menu -->
+                                <div id="enhanced-camera-menu" class="enhanced-camera-menu hidden absolute bottom-full left-0 mb-3 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 min-w-[280px] overflow-hidden">
+                                    <!-- Header -->
+                                    <div class="menu-header p-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <span class="material-symbols-outlined mr-3 text-2xl">photo_camera</span>
+                                                <div>
+                                                    <h3 class="font-bold text-lg">أدوات الكاميرا</h3>
+                                                    <p class="text-xs opacity-90">اختر الطريقة المناسبة</p>
+                                                </div>
+                                            </div>
+                                            <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-sm">auto_awesome</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="menu-item p-3 hover:bg-green-50 cursor-pointer border-b border-gray-100" data-action="camera">
-                                        <span class="material-symbols-outlined text-green-600 mr-2">photo_camera</span>
-                                        <div class="flex flex-col">
-                                            <span class="font-medium">التقاط صورة</span>
-                                            <span class="text-xs text-gray-500">باستخدام الكاميرا</span>
+                                    
+                                    <!-- Menu Items -->
+                                    <div class="menu-items">
+                                        <!-- Upload Option -->
+                                        <div class="enhanced-menu-item group p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 cursor-pointer border-b border-gray-100 transition-all duration-300" data-action="upload">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-blue-200 transition-colors">
+                                                    <span class="material-symbols-outlined text-blue-600 text-xl">upload</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h4 class="font-semibold text-gray-800 group-hover:text-blue-700">تحميل صورة</h4>
+                                                    <p class="text-sm text-gray-500">اختر صورة من معرض الصور</p>
+                                                    <div class="flex items-center mt-1">
+                                                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">سريع</span>
+                                                    </div>
+                                                </div>
+                                                <span class="material-symbols-outlined text-gray-400 group-hover:text-blue-500 transition-colors">arrow_forward_ios</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Camera Capture Option -->
+                                        <div class="enhanced-menu-item group p-4 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 cursor-pointer border-b border-gray-100 transition-all duration-300" data-action="camera">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-green-200 transition-colors">
+                                                    <span class="material-symbols-outlined text-green-600 text-xl">photo_camera</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h4 class="font-semibold text-gray-800 group-hover:text-green-700">التقاط صورة</h4>
+                                                    <p class="text-sm text-gray-500">استخدم كاميرا الجهاز للتصوير</p>
+                                                    <div class="flex items-center mt-1">
+                                                        <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">مباشر</span>
+                                                    </div>
+                                                </div>
+                                                <span class="material-symbols-outlined text-gray-400 group-hover:text-green-500 transition-colors">arrow_forward_ios</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Smart Scan Option -->
+                                        <div class="enhanced-menu-item group p-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 cursor-pointer transition-all duration-300" data-action="smart-scan">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-purple-200 transition-colors relative">
+                                                    <span class="material-symbols-outlined text-purple-600 text-xl">auto_awesome</span>
+                                                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h4 class="font-semibold text-gray-800 group-hover:text-purple-700 flex items-center">
+                                                        مسح ذكي
+                                                        <span class="ml-2 text-xs bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full">AI</span>
+                                                    </h4>
+                                                    <p class="text-sm text-gray-500">كشف وترجمة النصوص تلقائياً</p>
+                                                    <div class="flex items-center mt-1">
+                                                        <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">ذكي</span>
+                                                    </div>
+                                                </div>
+                                                <span class="material-symbols-outlined text-gray-400 group-hover:text-purple-500 transition-colors">arrow_forward_ios</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="menu-item p-3 hover:bg-purple-50 cursor-pointer" data-action="smart-scan">
-                                        <span class="material-symbols-outlined text-purple-600 mr-2">auto_awesome</span>
-                                        <div class="flex flex-col">
-                                            <span class="font-medium">مسح ذكي</span>
-                                            <span class="text-xs text-gray-500">كشف وترجمة تلقائية</span>
-                                        </div>
+                                    
+                                    <!-- Footer -->
+                                    <div class="p-3 bg-gray-50 text-center">
+                                        <p class="text-xs text-gray-500">اختر الطريقة الأنسب لاحتياجاتك</p>
                                     </div>
                                 </div>
                             </div>

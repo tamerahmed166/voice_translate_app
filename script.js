@@ -96,12 +96,17 @@ class VoiceTranslateApp {
             clearBtn: document.querySelector('[data-action="clear"]'),
             speakBtn: document.querySelector('[data-action="speak"]'),
             copyBtn: document.querySelector('[data-action="copy"]'),
-            imageCaptureBtn: document.querySelector('[data-action="camera"]'),
-            imageCaptureContainer: document.querySelector('.image-capture-container'),
-            imageCaptureMenu: document.getElementById('image-capture-menu'),
+            // Enhanced Camera Elements
+            enhancedCameraBtn: document.getElementById('enhanced-camera-btn'),
+            enhancedCameraContainer: document.querySelector('.enhanced-camera-container'),
+            enhancedCameraMenu: document.getElementById('enhanced-camera-menu'),
+            // Legacy support
+            imageCaptureBtn: document.querySelector('[data-action="camera"]') || document.getElementById('enhanced-camera-btn'),
+            imageCaptureContainer: document.querySelector('.image-capture-container') || document.querySelector('.enhanced-camera-container'),
+            imageCaptureMenu: document.getElementById('image-capture-menu') || document.getElementById('enhanced-camera-menu'),
             imageInput: document.getElementById('image-input'),
             sourceText: document.getElementById('source-text'),
-            translatedText: document.querySelector('.text-2xl.min-h-\\[80px\\]'),
+            translatedText: document.getElementById('translated-text'),
             sourceLang: document.getElementById('source-lang'),
             targetLang: document.getElementById('target-lang'),
             swapBtn: document.querySelector('[data-action="swap"]'),
@@ -117,6 +122,17 @@ class VoiceTranslateApp {
                 console.error(`العنصر المطلوب غير موجود: ${elementName}`);
                 this.showError(`العنصر المطلوب غير موجود: ${elementName}`);
             }
+        }
+        
+        // إضافة عنصر imageInput إذا لم يكن موجوداً
+        if (!this.elements.imageInput) {
+            const imageInput = document.createElement('input');
+            imageInput.type = 'file';
+            imageInput.id = 'image-input';
+            imageInput.accept = 'image/*';
+            imageInput.style.display = 'none';
+            document.body.appendChild(imageInput);
+            this.elements.imageInput = imageInput;
         }
     }
 
@@ -135,9 +151,10 @@ class VoiceTranslateApp {
             this.elements.copyBtn.addEventListener('click', () => this.copyTranslation());
         }
         
-        // القائمة المنسدلة للصور والكاميرا
-        if (this.elements.imageCaptureBtn) {
-            this.elements.imageCaptureBtn.addEventListener('click', (e) => this.toggleImageCaptureMenu(e));
+        // القائمة المنسدلة للصور والكاميرا المحسنة
+        if (this.elements.enhancedCameraBtn || this.elements.imageCaptureBtn) {
+            const cameraBtn = this.elements.enhancedCameraBtn || this.elements.imageCaptureBtn;
+            cameraBtn.addEventListener('click', (e) => this.toggleImageCaptureMenu(e));
         }
         if (this.elements.imageInput) {
             this.elements.imageInput.addEventListener('change', (e) => this.handleImageUpload(e));
@@ -146,9 +163,10 @@ class VoiceTranslateApp {
         // إغلاق القائمة عند النقر خارجها
         document.addEventListener('click', (e) => this.handleOutsideClick(e));
         
-        // عناصر القائمة المنسدلة
-        if (this.elements.imageCaptureMenu) {
-            this.elements.imageCaptureMenu.addEventListener('click', (e) => this.handleMenuItemClick(e));
+        // عناصر القائمة المنسدلة المحسنة
+        if (this.elements.enhancedCameraMenu || this.elements.imageCaptureMenu) {
+            const menu = this.elements.enhancedCameraMenu || this.elements.imageCaptureMenu;
+            menu.addEventListener('click', (e) => this.handleMenuItemClick(e));
         }
         
         // تبديل اللغات
@@ -2385,143 +2403,350 @@ class VoiceTranslateApp {
                 return await this.openCameraWithSmartScan();
             }
 
-            this.updateStatus('جاري فتح الكاميرا...', 'info');
+            this.updateStatus('جاري فتح الكاميرا المحسنة...', 'info');
             
-            // طلب الوصول للكاميرا
+            // إنشاء نافذة الكاميرا المحسنة
+            const cameraModal = this.createEnhancedCameraModal();
+            document.body.appendChild(cameraModal);
+            
+            // طلب الوصول للكاميرا مع إعدادات محسنة
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: {
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 },
-                    facingMode: 'environment' // الكاميرا الخلفية للهواتف
+                    width: { ideal: 1920, min: 1280 },
+                    height: { ideal: 1080, min: 720 },
+                    facingMode: 'environment',
+                    frameRate: { ideal: 30, min: 15 }
                 }
             });
 
-            // إنشاء عنصر فيديو لعرض الكاميرا
-            const video = document.createElement('video');
+            const video = cameraModal.querySelector('.enhanced-camera-video');
             video.srcObject = stream;
-            video.autoplay = true;
-            video.style.cssText = `
+            
+            // انتظار تحميل الفيديو
+            await new Promise((resolve) => {
+                video.onloadedmetadata = () => {
+                    video.play();
+                    resolve();
+                };
+            });
+
+            // إعداد أزرار التحكم المحسنة
+            this.setupEnhancedCameraControls(cameraModal, video, stream);
+            
+            this.updateStatus('الكاميرا المحسنة جاهزة - اضغط على زر التقاط الصورة', 'success');
+
+        } catch (error) {
+            this.handleEnhancedCameraError(error);
+        }
+    }
+
+    createEnhancedCameraModal() {
+        const modal = document.createElement('div');
+        modal.className = 'enhanced-camera-modal';
+        modal.innerHTML = `
+            <div class="enhanced-camera-overlay"></div>
+            <div class="enhanced-camera-container">
+                <div class="enhanced-camera-header">
+                    <h3>📸 التقاط صورة محسن</h3>
+                    <button class="enhanced-close-btn">✕</button>
+                </div>
+                <div class="enhanced-camera-body">
+                    <video class="enhanced-camera-video" autoplay playsinline></video>
+                    <div class="enhanced-camera-overlay-grid"></div>
+                </div>
+                <div class="enhanced-camera-controls">
+                    <button class="enhanced-capture-btn">📸 التقاط</button>
+                    <button class="enhanced-switch-camera-btn">🔄 تبديل الكاميرا</button>
+                    <button class="enhanced-flash-btn">💡 الفلاش</button>
+                </div>
+                <div class="enhanced-camera-info">
+                    <span class="camera-resolution">جودة عالية</span>
+                    <span class="camera-status">جاهز</span>
+                </div>
+            </div>
+        `;
+        
+        // إضافة الأنماط المحسنة
+        this.addEnhancedCameraStyles();
+        
+        return modal;
+    }
+
+    addEnhancedCameraStyles() {
+        if (document.getElementById('enhanced-camera-styles')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'enhanced-camera-styles';
+        style.textContent = `
+            .enhanced-camera-modal {
                 position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                z-index: 1000;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .enhanced-camera-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+            }
+            .enhanced-camera-container {
+                position: relative;
+                background: #fff;
+                border-radius: 15px;
+                overflow: hidden;
                 max-width: 90vw;
                 max-height: 90vh;
-                border: 3px solid #007bff;
-                border-radius: 10px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            `;
-
-            // إنشاء أزرار التحكم
-            const controls = document.createElement('div');
-            controls.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 1001;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            }
+            .enhanced-camera-header {
                 display: flex;
-                gap: 10px;
-            `;
-
-            const captureBtn = document.createElement('button');
-            captureBtn.textContent = '📸 التقاط صورة';
-            captureBtn.style.cssText = `
-                padding: 12px 24px;
-                background: #28a745;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white;
+            }
+            .enhanced-camera-header h3 {
+                margin: 0;
+                font-size: 18px;
+            }
+            .enhanced-close-btn {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 5px;
+                border-radius: 50%;
+                transition: background 0.3s;
+            }
+            .enhanced-close-btn:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+            .enhanced-camera-body {
+                position: relative;
+                background: #000;
+            }
+            .enhanced-camera-video {
+                width: 100%;
+                height: auto;
+                max-height: 60vh;
+                object-fit: cover;
+            }
+            .enhanced-camera-overlay-grid {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: 
+                    linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+                background-size: 33.33% 33.33%;
+                pointer-events: none;
+            }
+            .enhanced-camera-controls {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                padding: 20px;
+                background: #f8f9fa;
+            }
+            .enhanced-camera-controls button {
+                padding: 12px 20px;
                 border: none;
                 border-radius: 25px;
+                font-size: 14px;
+                font-weight: 600;
                 cursor: pointer;
-                font-size: 16px;
-            `;
-
-            const closeBtn = document.createElement('button');
-            closeBtn.textContent = '❌ إغلاق';
-            closeBtn.style.cssText = `
-                padding: 12px 24px;
-                background: #dc3545;
+                transition: all 0.3s ease;
+                min-width: 120px;
+            }
+            .enhanced-capture-btn {
+                background: linear-gradient(135deg, #28a745, #20c997);
                 color: white;
-                border: none;
-                border-radius: 25px;
-                cursor: pointer;
-                font-size: 16px;
-            `;
+                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            }
+            .enhanced-capture-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+            }
+            .enhanced-switch-camera-btn {
+                background: linear-gradient(135deg, #007bff, #6610f2);
+                color: white;
+            }
+            .enhanced-flash-btn {
+                background: linear-gradient(135deg, #ffc107, #fd7e14);
+                color: white;
+            }
+            .enhanced-camera-info {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px 20px;
+                background: #e9ecef;
+                font-size: 12px;
+                color: #6c757d;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
-            controls.appendChild(captureBtn);
-            controls.appendChild(closeBtn);
+    setupEnhancedCameraControls(modal, video, stream) {
+        const captureBtn = modal.querySelector('.enhanced-capture-btn');
+        const closeBtn = modal.querySelector('.enhanced-close-btn');
+        const switchBtn = modal.querySelector('.enhanced-switch-camera-btn');
+        const flashBtn = modal.querySelector('.enhanced-flash-btn');
+        const statusSpan = modal.querySelector('.camera-status');
+        
+        let currentFacingMode = 'environment';
+        let flashEnabled = false;
 
-            // إضافة العناصر للصفحة
-            document.body.appendChild(video);
-            document.body.appendChild(controls);
-
-            // وظيفة التقاط الصورة
-            captureBtn.onclick = () => {
+        // التقاط الصورة المحسن
+        captureBtn.onclick = async () => {
+            try {
+                statusSpan.textContent = 'جاري التقاط الصورة...';
+                captureBtn.disabled = true;
+                
                 const canvas = document.createElement('canvas');
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 const ctx = canvas.getContext('2d');
+                
+                // تطبيق تحسينات الصورة
+                ctx.filter = 'contrast(1.1) brightness(1.05) saturate(1.1)';
                 ctx.drawImage(video, 0, 0);
                 
                 canvas.toBlob(async (blob) => {
-                    const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+                    const file = new File([blob], `enhanced-capture-${Date.now()}.jpg`, { 
+                        type: 'image/jpeg' 
+                    });
                     
                     // إغلاق الكاميرا
-                    stream.getTracks().forEach(track => track.stop());
-                    document.body.removeChild(video);
-                    document.body.removeChild(controls);
+                    this.closeEnhancedCamera(modal, stream);
                     
-                    // معالجة الصورة الملتقطة
+                    // معالجة الصورة
                     await this.handleImageUpload({ target: { files: [file] } });
-                }, 'image/jpeg', 0.9);
-            };
-
-            // وظيفة الإغلاق
-            closeBtn.onclick = () => {
-                stream.getTracks().forEach(track => track.stop());
-                document.body.removeChild(video);
-                document.body.removeChild(controls);
-                this.updateStatus('تم إغلاق الكاميرا', 'info');
-            };
-
-            this.updateStatus('الكاميرا جاهزة - اضغط على زر التقاط الصورة', 'success');
-
-        } catch (error) {
-            this.handleFileError(error, 'الكاميرا');
-            
-            // رسائل خطأ محددة للكاميرا
-            if (error.name === 'NotAllowedError') {
-                this.updateStatus('يرجى السماح بالوصول للكاميرا من إعدادات المتصفح', 'error');
-            } else if (error.name === 'NotFoundError') {
-                this.updateStatus('لم يتم العثور على كاميرا متاحة', 'error');
-            } else if (error.name === 'NotReadableError') {
-                this.updateStatus('الكاميرا مستخدمة من تطبيق آخر', 'error');
-            } else {
-                this.updateStatus('خطأ في فتح الكاميرا: ' + error.message, 'error');
+                }, 'image/jpeg', 0.95);
+                
+            } catch (error) {
+                statusSpan.textContent = 'خطأ في التقاط الصورة';
+                captureBtn.disabled = false;
+                console.error('خطأ في التقاط الصورة:', error);
             }
+        };
+
+        // إغلاق الكاميرا
+        closeBtn.onclick = () => {
+            this.closeEnhancedCamera(modal, stream);
+        };
+
+        // تبديل الكاميرا
+        switchBtn.onclick = async () => {
+            try {
+                currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+                const newStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1920, min: 1280 },
+                        height: { ideal: 1080, min: 720 },
+                        facingMode: currentFacingMode,
+                        frameRate: { ideal: 30, min: 15 }
+                    }
+                });
+                
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = newStream;
+                Object.assign(this, { currentStream: newStream });
+                
+            } catch (error) {
+                console.error('خطأ في تبديل الكاميرا:', error);
+                statusSpan.textContent = 'فشل تبديل الكاميرا';
+            }
+        };
+
+        // تفعيل/إلغاء الفلاش
+        flashBtn.onclick = async () => {
+            try {
+                const track = stream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities();
+                
+                if (capabilities.torch) {
+                    flashEnabled = !flashEnabled;
+                    await track.applyConstraints({
+                        advanced: [{ torch: flashEnabled }]
+                    });
+                    flashBtn.style.background = flashEnabled ? 
+                        'linear-gradient(135deg, #ffc107, #fd7e14)' : 
+                        'linear-gradient(135deg, #6c757d, #495057)';
+                } else {
+                    statusSpan.textContent = 'الفلاش غير متاح';
+                }
+            } catch (error) {
+                console.error('خطأ في الفلاش:', error);
+            }
+        };
+
+        // إغلاق عند النقر على الخلفية
+        modal.querySelector('.enhanced-camera-overlay').onclick = () => {
+            this.closeEnhancedCamera(modal, stream);
+        };
+    }
+
+    closeEnhancedCamera(modal, stream) {
+        stream.getTracks().forEach(track => track.stop());
+        document.body.removeChild(modal);
+        this.updateStatus('تم إغلاق الكاميرا المحسنة', 'info');
+    }
+
+    handleEnhancedCameraError(error) {
+        this.handleFileError(error, 'الكاميرا المحسنة');
+        
+        const errorMessages = {
+            'NotAllowedError': 'يرجى السماح بالوصول للكاميرا من إعدادات المتصفح',
+            'NotFoundError': 'لم يتم العثور على كاميرا متاحة على هذا الجهاز',
+            'NotReadableError': 'الكاميرا مستخدمة من تطبيق آخر، يرجى إغلاقه أولاً',
+            'OverconstrainedError': 'إعدادات الكاميرا غير متوافقة مع جهازك',
+            'SecurityError': 'خطأ أمني في الوصول للكاميرا',
+            'AbortError': 'تم إلغاء طلب الوصول للكاميرا'
+        };
+        
+        const message = errorMessages[error.name] || `خطأ في فتح الكاميرا: ${error.message}`;
+        this.updateStatus(message, 'error');
+    }
+
+    // وظائف القائمة المنسدلة للصور والكاميرا المحسنة
+    toggleImageCaptureMenu(e) {
+        e.stopPropagation();
+        const container = this.elements.enhancedCameraContainer || this.elements.imageCaptureContainer;
+        if (container) {
+            container.classList.toggle('active');
         }
     }
 
-    // وظائف القائمة المنسدلة للصور والكاميرا
-    toggleImageCaptureMenu(e) {
-        e.stopPropagation();
-        this.elements.imageCaptureContainer.classList.toggle('active');
-    }
-
     handleOutsideClick(e) {
-        if (!this.elements.imageCaptureContainer.contains(e.target)) {
-            this.elements.imageCaptureContainer.classList.remove('active');
+        const container = this.elements.enhancedCameraContainer || this.elements.imageCaptureContainer;
+        if (container && !container.contains(e.target)) {
+            container.classList.remove('active');
         }
     }
 
     handleMenuItemClick(e) {
         e.stopPropagation();
-        const menuItem = e.target.closest('.menu-item');
+        const menuItem = e.target.closest('.enhanced-menu-item') || e.target.closest('.menu-item');
         if (!menuItem) return;
 
         const action = menuItem.getAttribute('data-action');
-        this.elements.imageCaptureContainer.classList.remove('active');
+        const container = this.elements.enhancedCameraContainer || this.elements.imageCaptureContainer;
+        if (container) {
+            container.classList.remove('active');
+        }
 
         if (action === 'upload') {
             this.triggerImageUpload();
@@ -2735,7 +2960,7 @@ class VoiceTranslateApp {
     // وظيفة المسح الذكي الجديدة
     async startSmartScan() {
         try {
-            this.updateStatus('بدء المسح الذكي...', 'info');
+            this.updateStatus('تحضير المسح الذكي المحسن...', 'info');
             
             // التحقق من دعم الكاميرا
             const isSupported = await this.checkCameraSupport();
@@ -2745,14 +2970,803 @@ class VoiceTranslateApp {
                 return;
             }
 
-            // فتح الكاميرا مع وضع المسح الذكي
+            // تعيين وضع المسح الذكي المحسن
             this.smartScanMode = true;
-            await this.openCamera();
+            this.isEnhancedSmartScan = true;
+            
+            // فتح الكاميرا مع المسح الذكي المحسن
+            await this.openEnhancedSmartScanCamera();
             
         } catch (error) {
             console.error('خطأ في المسح الذكي:', error);
             this.updateStatus('حدث خطأ أثناء بدء المسح الذكي', 'error');
+            this.smartScanMode = false;
+            this.isEnhancedSmartScan = false;
         }
+    }
+
+    // فتح كاميرا المسح الذكي المحسن
+    async openEnhancedSmartScanCamera() {
+        try {
+            // طلب الوصول للكاميرا
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment', // الكاميرا الخلفية للهواتف
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }
+            });
+
+            // إنشاء واجهة المسح الذكي المحسن
+            const modal = this.createEnhancedSmartScanModal();
+            document.body.appendChild(modal);
+
+            // إعداد الفيديو
+            const video = modal.querySelector('#enhanced-smart-scan-video');
+            video.srcObject = stream;
+            await video.play();
+
+            // إضافة الأنماط المحسنة
+            this.addEnhancedSmartScanStyles();
+
+            // إعداد عناصر التحكم
+            this.setupEnhancedSmartScanControls(modal, video, stream);
+
+            this.updateStatus('المسح الذكي جاهز - وجه الكاميرا نحو النص', 'success');
+
+        } catch (error) {
+            console.error('خطأ في فتح كاميرا المسح الذكي:', error);
+            this.handleEnhancedSmartScanError(error);
+        }
+    }
+
+    // إنشاء واجهة المسح الذكي المحسن
+    createEnhancedSmartScanModal() {
+        const modal = document.createElement('div');
+        modal.className = 'enhanced-smart-scan-modal';
+        modal.innerHTML = `
+            <div class="enhanced-smart-scan-container">
+                <div class="enhanced-smart-scan-header">
+                    <h3>📱 المسح الذكي المحسن</h3>
+                    <button class="enhanced-close-btn" id="enhanced-smart-close">✕</button>
+                </div>
+                
+                <div class="enhanced-video-container">
+                    <video id="enhanced-smart-scan-video" autoplay playsinline></video>
+                    <div class="enhanced-scan-overlay">
+                        <div class="enhanced-scan-frame">
+                            <div class="enhanced-corner enhanced-corner-tl"></div>
+                            <div class="enhanced-corner enhanced-corner-tr"></div>
+                            <div class="enhanced-corner enhanced-corner-bl"></div>
+                            <div class="enhanced-corner enhanced-corner-br"></div>
+                            <div class="enhanced-scan-line"></div>
+                        </div>
+                        <div class="enhanced-scan-text">وجه الكاميرا نحو النص المراد ترجمته</div>
+                    </div>
+                </div>
+                
+                <div class="enhanced-controls">
+                    <button class="enhanced-control-btn enhanced-flash-btn" id="enhanced-flash-toggle">
+                        <span class="enhanced-icon">🔦</span>
+                        <span>الفلاش</span>
+                    </button>
+                    
+                    <button class="enhanced-control-btn enhanced-capture-btn" id="enhanced-smart-capture">
+                        <span class="enhanced-icon">📸</span>
+                        <span>مسح ذكي</span>
+                    </button>
+                    
+                    <button class="enhanced-control-btn enhanced-switch-btn" id="enhanced-camera-switch">
+                        <span class="enhanced-icon">🔄</span>
+                        <span>تبديل</span>
+                    </button>
+                </div>
+                
+                <div class="enhanced-tips">
+                    <div class="enhanced-tip">💡 تأكد من وضوح النص في الإطار</div>
+                    <div class="enhanced-tip">🔍 استخدم الإضاءة الجيدة للحصول على أفضل النتائج</div>
+                </div>
+            </div>
+        `;
+        return modal;
+    }
+
+    // إضافة أنماط المسح الذكي المحسن
+    addEnhancedSmartScanStyles() {
+        if (document.getElementById('enhanced-smart-scan-styles')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'enhanced-smart-scan-styles';
+        style.textContent = `
+            .enhanced-smart-scan-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: enhancedFadeIn 0.3s ease;
+            }
+            
+            .enhanced-smart-scan-container {
+                width: 90%;
+                max-width: 500px;
+                background: #1a1a1a;
+                border-radius: 20px;
+                overflow: hidden;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            }
+            
+            .enhanced-smart-scan-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            
+            .enhanced-smart-scan-header h3 {
+                margin: 0;
+                font-size: 1.2rem;
+                font-weight: 600;
+            }
+            
+            .enhanced-close-btn {
+                background: rgba(255, 255, 255, 0.2);
+                border: none;
+                color: white;
+                width: 35px;
+                height: 35px;
+                border-radius: 50%;
+                cursor: pointer;
+                font-size: 1.2rem;
+                transition: all 0.3s ease;
+            }
+            
+            .enhanced-close-btn:hover {
+                background: rgba(255, 255, 255, 0.3);
+                transform: scale(1.1);
+            }
+            
+            .enhanced-video-container {
+                position: relative;
+                aspect-ratio: 4/3;
+                overflow: hidden;
+            }
+            
+            #enhanced-smart-scan-video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            
+            .enhanced-scan-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .enhanced-scan-frame {
+                position: relative;
+                width: 80%;
+                height: 60%;
+                border: 2px solid #00ff88;
+                border-radius: 10px;
+                background: rgba(0, 255, 136, 0.1);
+            }
+            
+            .enhanced-corner {
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                border: 3px solid #00ff88;
+            }
+            
+            .enhanced-corner-tl {
+                top: -3px;
+                left: -3px;
+                border-right: none;
+                border-bottom: none;
+            }
+            
+            .enhanced-corner-tr {
+                top: -3px;
+                right: -3px;
+                border-left: none;
+                border-bottom: none;
+            }
+            
+            .enhanced-corner-bl {
+                bottom: -3px;
+                left: -3px;
+                border-right: none;
+                border-top: none;
+            }
+            
+            .enhanced-corner-br {
+                bottom: -3px;
+                right: -3px;
+                border-left: none;
+                border-top: none;
+            }
+            
+            .enhanced-scan-line {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background: linear-gradient(90deg, transparent, #00ff88, transparent);
+                animation: enhancedScanAnimation 2s infinite;
+            }
+            
+            .enhanced-scan-text {
+                margin-top: 20px;
+                color: white;
+                text-align: center;
+                background: rgba(0, 0, 0, 0.7);
+                padding: 10px 20px;
+                border-radius: 20px;
+                font-size: 0.9rem;
+            }
+            
+            .enhanced-controls {
+                display: flex;
+                justify-content: space-around;
+                padding: 20px;
+                background: #2a2a2a;
+            }
+            
+            .enhanced-control-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+                background: #3a3a3a;
+                border: none;
+                color: white;
+                padding: 15px;
+                border-radius: 15px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                min-width: 80px;
+            }
+            
+            .enhanced-control-btn:hover {
+                background: #4a4a4a;
+                transform: translateY(-2px);
+            }
+            
+            .enhanced-capture-btn {
+                background: linear-gradient(135deg, #00ff88, #00cc6a);
+            }
+            
+            .enhanced-capture-btn:hover {
+                background: linear-gradient(135deg, #00cc6a, #00aa55);
+            }
+            
+            .enhanced-icon {
+                font-size: 1.5rem;
+            }
+            
+            .enhanced-tips {
+                padding: 15px 20px;
+                background: #1a1a1a;
+                border-top: 1px solid #333;
+            }
+            
+            .enhanced-tip {
+                color: #ccc;
+                font-size: 0.8rem;
+                margin: 5px 0;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            @keyframes enhancedFadeIn {
+                from { opacity: 0; transform: scale(0.9); }
+                to { opacity: 1; transform: scale(1); }
+            }
+            
+            @keyframes enhancedScanAnimation {
+                0% { top: 0; }
+                50% { top: calc(100% - 2px); }
+                100% { top: 0; }
+            }
+            
+            @media (max-width: 480px) {
+                .enhanced-smart-scan-container {
+                    width: 95%;
+                    margin: 10px;
+                }
+                
+                .enhanced-controls {
+                    padding: 15px 10px;
+                }
+                
+                .enhanced-control-btn {
+                    min-width: 70px;
+                    padding: 12px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // إعداد عناصر التحكم للمسح الذكي المحسن
+    setupEnhancedSmartScanControls(modal, video, stream) {
+        const captureBtn = modal.querySelector('#enhanced-smart-capture');
+        const closeBtn = modal.querySelector('#enhanced-smart-close');
+        const flashBtn = modal.querySelector('#enhanced-flash-toggle');
+        const switchBtn = modal.querySelector('#enhanced-camera-switch');
+        
+        let isFlashOn = false;
+        let currentFacingMode = 'environment';
+        
+        // زر التقاط المسح الذكي
+        captureBtn.addEventListener('click', async () => {
+            try {
+                this.updateStatus('جاري المسح الذكي...', 'info');
+                
+                // إنشاء canvas لالتقاط الصورة
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0);
+                
+                // تحويل إلى blob
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], 'smart-scan.jpg', { type: 'image/jpeg' });
+                    
+                    // إغلاق الكاميرا
+                    this.closeEnhancedSmartScan(modal, stream);
+                    
+                    // معالجة الصورة بالمسح الذكي
+                    await this.processEnhancedSmartScan(file);
+                }, 'image/jpeg', 0.9);
+                
+            } catch (error) {
+                console.error('خطأ في المسح الذكي:', error);
+                this.updateStatus('فشل في المسح الذكي', 'error');
+            }
+        });
+        
+        // زر الإغلاق
+        closeBtn.addEventListener('click', () => {
+            this.closeEnhancedSmartScan(modal, stream);
+        });
+        
+        // زر الفلاش
+        flashBtn.addEventListener('click', async () => {
+            try {
+                const track = stream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities();
+                
+                if (capabilities.torch) {
+                    isFlashOn = !isFlashOn;
+                    await track.applyConstraints({
+                        advanced: [{ torch: isFlashOn }]
+                    });
+                    
+                    flashBtn.style.background = isFlashOn ? 
+                        'linear-gradient(135deg, #ffd700, #ffb347)' : '#3a3a3a';
+                }
+            } catch (error) {
+                console.log('الفلاش غير متاح على هذا الجهاز');
+            }
+        });
+        
+        // زر تبديل الكاميرا
+        switchBtn.addEventListener('click', async () => {
+            try {
+                // إيقاف الكاميرا الحالية
+                stream.getTracks().forEach(track => track.stop());
+                
+                // تبديل وضع الكاميرا
+                currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+                
+                // فتح الكاميرا الجديدة
+                const newStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                });
+                
+                video.srcObject = newStream;
+                
+                // تحديث المراجع
+                this.setupEnhancedSmartScanControls(modal, video, newStream);
+                
+            } catch (error) {
+                console.error('فشل في تبديل الكاميرا:', error);
+                this.updateStatus('فشل في تبديل الكاميرا', 'error');
+            }
+        });
+        
+        // إغلاق عند النقر خارج النافذة
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeEnhancedSmartScan(modal, stream);
+            }
+        });
+    }
+    
+    // إغلاق المسح الذكي المحسن
+    closeEnhancedSmartScan(modal, stream) {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        if (modal && modal.parentNode) {
+            modal.parentNode.removeChild(modal);
+        }
+        this.smartScanMode = false;
+        this.isEnhancedSmartScan = false;
+        this.updateStatus('تم إغلاق المسح الذكي', 'info');
+    }
+    
+    // معالجة المسح الذكي المحسن
+    async processEnhancedSmartScan(file) {
+        try {
+            this.updateStatus('جاري استخراج النص...', 'info');
+            
+            // استخراج النص باستخدام OCR محسن
+            const extractedText = await this.extractTextFromImage(file);
+            
+            if (extractedText && extractedText.trim()) {
+                this.updateStatus('تم استخراج النص بنجاح!', 'success');
+                
+                // عرض النص المستخرج في حقل الإدخال
+                if (this.elements.inputText) {
+                    this.elements.inputText.value = extractedText.trim();
+                }
+                
+                // ترجمة فورية إذا كان النص باللغة الإنجليزية أو العربية
+                const detectedLang = this.detectLanguage(extractedText);
+                if (detectedLang && detectedLang !== 'unknown') {
+                    // تعيين اللغة المكتشفة
+                    if (this.elements.sourceLang) {
+                        this.elements.sourceLang.value = detectedLang;
+                    }
+                    
+                    // بدء الترجمة الفورية
+                    setTimeout(() => {
+                        this.translateText();
+                    }, 500);
+                }
+                
+                // عرض خيارات التحديد الذكي
+                this.showEnhancedSmartTextSelection(extractedText, file);
+                
+            } else {
+                this.updateStatus('لم يتم العثور على نص في الصورة', 'warning');
+            }
+            
+        } catch (error) {
+            console.error('خطأ في معالجة المسح الذكي:', error);
+            this.updateStatus('فشل في معالجة الصورة', 'error');
+        }
+    }
+    
+    // عرض تحديد النص الذكي المحسن
+    showEnhancedSmartTextSelection(extractedText, imageFile) {
+        // إنشاء نافذة تحديد النص المحسنة
+        const modal = document.createElement('div');
+        modal.className = 'enhanced-text-selection-modal';
+        modal.innerHTML = `
+            <div class="enhanced-text-selection-container">
+                <div class="enhanced-text-selection-header">
+                    <h3>🎯 تحديد النص الذكي</h3>
+                    <button class="enhanced-close-btn" id="enhanced-text-close">✕</button>
+                </div>
+                
+                <div class="enhanced-text-content">
+                    <div class="enhanced-extracted-text" id="enhanced-selectable-text"></div>
+                </div>
+                
+                <div class="enhanced-text-actions">
+                    <button class="enhanced-action-btn enhanced-select-all" id="enhanced-select-all">
+                        <span class="enhanced-icon">📋</span>
+                        <span>تحديد الكل</span>
+                    </button>
+                    
+                    <button class="enhanced-action-btn enhanced-smart-select" id="enhanced-smart-select">
+                        <span class="enhanced-icon">🧠</span>
+                        <span>تحديد ذكي</span>
+                    </button>
+                    
+                    <button class="enhanced-action-btn enhanced-translate-selected" id="enhanced-translate-selected">
+                        <span class="enhanced-icon">🌐</span>
+                        <span>ترجمة المحدد</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // عرض النص القابل للتحديد
+        this.displayEnhancedSelectableText(extractedText, modal.querySelector('#enhanced-selectable-text'));
+        
+        // إعداد أحداث التحديد
+        this.setupEnhancedTextSelectionEvents(modal, extractedText);
+        
+        // إضافة أنماط التحديد المحسن
+        this.addEnhancedTextSelectionStyles();
+    }
+
+    // عرض النص القابل للتحديد المحسن
+    displayEnhancedSelectableText(text, container) {
+        const words = text.split(/\s+/);
+        container.innerHTML = '';
+        
+        words.forEach((word, index) => {
+            const span = document.createElement('span');
+            span.className = 'enhanced-selectable-word';
+            span.textContent = word;
+            span.dataset.index = index;
+            
+            span.addEventListener('click', (e) => {
+                e.target.classList.toggle('enhanced-selected');
+            });
+            
+            container.appendChild(span);
+            
+            if (index < words.length - 1) {
+                container.appendChild(document.createTextNode(' '));
+            }
+        });
+    }
+    
+    // إعداد أحداث تحديد النص المحسن
+    setupEnhancedTextSelectionEvents(modal, originalText) {
+        const selectAllBtn = modal.querySelector('#enhanced-select-all');
+        const smartSelectBtn = modal.querySelector('#enhanced-smart-select');
+        const translateBtn = modal.querySelector('#enhanced-translate-selected');
+        const closeBtn = modal.querySelector('#enhanced-text-close');
+        
+        // تحديد الكل
+        selectAllBtn.addEventListener('click', () => {
+            const words = modal.querySelectorAll('.enhanced-selectable-word');
+            words.forEach(word => word.classList.add('enhanced-selected'));
+        });
+        
+        // التحديد الذكي
+        smartSelectBtn.addEventListener('click', () => {
+            this.performEnhancedSmartSelection(modal, originalText);
+        });
+        
+        // ترجمة المحدد
+        translateBtn.addEventListener('click', () => {
+            const selectedText = this.getEnhancedSelectedText(modal);
+            if (selectedText.trim()) {
+                if (this.elements.inputText) {
+                    this.elements.inputText.value = selectedText;
+                }
+                modal.remove();
+                this.translateText();
+            } else {
+                this.updateStatus('يرجى تحديد نص للترجمة', 'warning');
+            }
+        });
+        
+        // إغلاق
+        closeBtn.addEventListener('click', () => {
+            modal.remove();
+        });
+        
+        // إغلاق عند النقر خارج النافذة
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    }
+    
+    // التحديد الذكي المحسن
+    performEnhancedSmartSelection(modal, text) {
+        const words = modal.querySelectorAll('.enhanced-selectable-word');
+        const importantWords = this.extractImportantWords(text, this.detectLanguage(text));
+        
+        // إلغاء التحديد السابق
+        words.forEach(word => word.classList.remove('enhanced-selected'));
+        
+        // تحديد الكلمات المهمة
+        words.forEach(word => {
+            const wordText = word.textContent.toLowerCase().replace(/[^\w\u0600-\u06FF]/g, '');
+            if (importantWords.some(important => 
+                important.toLowerCase().replace(/[^\w\u0600-\u06FF]/g, '') === wordText
+            )) {
+                word.classList.add('enhanced-selected');
+            }
+        });
+        
+        this.updateStatus('تم التحديد الذكي للكلمات المهمة', 'success');
+    }
+    
+    // الحصول على النص المحدد المحسن
+    getEnhancedSelectedText(modal) {
+        const selectedWords = modal.querySelectorAll('.enhanced-selectable-word.enhanced-selected');
+        return Array.from(selectedWords).map(word => word.textContent).join(' ');
+    }
+    
+    // إضافة أنماط تحديد النص المحسن
+    addEnhancedTextSelectionStyles() {
+        if (document.getElementById('enhanced-text-selection-styles')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'enhanced-text-selection-styles';
+        style.textContent = `
+            .enhanced-text-selection-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                z-index: 10001;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: enhancedFadeIn 0.3s ease;
+            }
+            
+            .enhanced-text-selection-container {
+                width: 90%;
+                max-width: 600px;
+                max-height: 80vh;
+                background: #1a1a1a;
+                border-radius: 20px;
+                overflow: hidden;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .enhanced-text-selection-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            
+            .enhanced-text-content {
+                flex: 1;
+                padding: 20px;
+                overflow-y: auto;
+                max-height: 400px;
+            }
+            
+            .enhanced-extracted-text {
+                line-height: 1.8;
+                font-size: 1.1rem;
+                color: #e0e0e0;
+                text-align: right;
+                direction: rtl;
+            }
+            
+            .enhanced-selectable-word {
+                cursor: pointer;
+                padding: 2px 4px;
+                border-radius: 4px;
+                transition: all 0.3s ease;
+                display: inline-block;
+                margin: 1px;
+            }
+            
+            .enhanced-selectable-word:hover {
+                background: rgba(102, 126, 234, 0.3);
+                transform: scale(1.05);
+            }
+            
+            .enhanced-selectable-word.enhanced-selected {
+                background: linear-gradient(135deg, #00ff88, #00cc6a);
+                color: #000;
+                font-weight: bold;
+                transform: scale(1.1);
+            }
+            
+            .enhanced-text-actions {
+                display: flex;
+                justify-content: space-around;
+                padding: 20px;
+                background: #2a2a2a;
+                border-top: 1px solid #333;
+            }
+            
+            .enhanced-action-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+                background: #3a3a3a;
+                border: none;
+                color: white;
+                padding: 15px;
+                border-radius: 15px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                min-width: 80px;
+                font-size: 0.9rem;
+            }
+            
+            .enhanced-action-btn:hover {
+                background: #4a4a4a;
+                transform: translateY(-2px);
+            }
+            
+            .enhanced-translate-selected {
+                background: linear-gradient(135deg, #00ff88, #00cc6a);
+            }
+            
+            .enhanced-translate-selected:hover {
+                background: linear-gradient(135deg, #00cc6a, #00aa55);
+            }
+            
+            .enhanced-smart-select {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+            }
+            
+            .enhanced-smart-select:hover {
+                background: linear-gradient(135deg, #5a6fd8, #6a4190);
+            }
+            
+            @media (max-width: 480px) {
+                .enhanced-text-selection-container {
+                    width: 95%;
+                    margin: 10px;
+                }
+                
+                .enhanced-text-actions {
+                    padding: 15px 10px;
+                }
+                
+                .enhanced-action-btn {
+                    min-width: 70px;
+                    padding: 12px;
+                    font-size: 0.8rem;
+                }
+                
+                .enhanced-extracted-text {
+                    font-size: 1rem;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // معالجة أخطاء المسح الذكي المحسن
+    handleEnhancedSmartScanError(error) {
+        let errorMessage = 'حدث خطأ في المسح الذكي';
+        
+        if (error.name === 'NotAllowedError') {
+            errorMessage = 'يرجى السماح بالوصول للكاميرا';
+        } else if (error.name === 'NotFoundError') {
+            errorMessage = 'لم يتم العثور على كاميرا';
+        } else if (error.name === 'NotSupportedError') {
+            errorMessage = 'الكاميرا غير مدعومة على هذا الجهاز';
+        }
+        
+        this.updateStatus(errorMessage, 'error');
+        this.smartScanMode = false;
+        this.isEnhancedSmartScan = false;
     }
 
     // تحسين وظيفة التقاط الصور للمسح الذكي
