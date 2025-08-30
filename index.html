@@ -2,221 +2,148 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
-    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-    <title>Instant Translation - الترجمة الفورية</title>
-    <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <style>
-        body {
-            min-height: max(884px, 100dvh);
-        }
-        .gradient-bg {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-        }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ترجمة فورية">
+    <meta name="description" content="تطبيق الترجمة الصوتية الفورية - تحدث بأي لغة واحصل على الترجمة فوراً">
+    
+    <!-- Mobile Optimization -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <title>تطبيق الترجمة الفورية</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Tesseract.js for OCR -->
+    <script src="https://unpkg.com/tesseract.js@v4.1.1/dist/tesseract.min.js"></script>
 </head>
-<body class="gradient-bg">
-    <div class="relative flex size-full min-h-screen flex-col justify-between group/design-root overflow-x-hidden" style='font-family: Inter, "Noto Sans", sans-serif;'>
-        
-        <!-- Header -->
-        <div class="flex items-center justify-between p-4 glass-effect">
-            <button onclick="goBack()" class="text-white/80 hover:text-white transition-colors">
-                <span class="material-symbols-outlined">arrow_back</span>
-            </button>
-            <h1 class="text-white text-lg font-semibold">الترجمة الفورية</h1>
-            <button onclick="openSettings()" class="text-white/80 hover:text-white transition-colors">
-                <span class="material-symbols-outlined">settings</span>
-            </button>
-        </div>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗣️ تطبيق الترجمة الفورية</h1>
+            <p>تحدث بأي لغة واحصل على الترجمة فوراً</p>
+        </header>
 
-        <!-- Language Selection -->
-        <div class="px-4 py-6">
-            <div class="bg-white/10 rounded-2xl p-4 glass-effect">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex-1">
-                        <button id="fromLang" class="w-full text-right text-white font-medium text-lg">
-                            العربية
-                        </button>
-                        <span class="text-white/60 text-sm">من</span>
-                    </div>
-                    
-                    <button onclick="swapLanguages()" class="mx-4 p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
-                        <span class="material-symbols-outlined text-white">swap_horiz</span>
-                    </button>
-                    
-                    <div class="flex-1">
-                        <button id="toLang" class="w-full text-left text-white font-medium text-lg">
-                            English
-                        </button>
-                        <span class="text-white/60 text-sm">إلى</span>
-                    </div>
+        <main>
+            <div class="language-selector">
+                <div class="language-group">
+                    <label for="source-lang">اللغة المصدر:</label>
+                    <select id="source-lang">
+                        <option value="auto">اكتشاف تلقائي</option>
+                        <option value="ar">العربية</option>
+                        <option value="en">English</option>
+                        <option value="fr">Français</option>
+                        <option value="es">Español</option>
+                        <option value="de">Deutsch</option>
+                        <option value="it">Italiano</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="zh">中文</option>
+                    </select>
                 </div>
-            </div>
-        </div>
-
-        <!-- Translation Area -->
-        <div class="flex-1 px-4">
-            <!-- Input Section -->
-            <div class="bg-white/10 rounded-2xl p-4 mb-4 glass-effect">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-white/80 text-sm font-medium">أدخل النص</span>
-                    <button onclick="clearInput()" class="text-white/60 hover:text-white transition-colors">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                    </button>
-                </div>
-                <textarea 
-                    id="inputText" 
-                    placeholder="اكتب هنا أو استخدم الميكروفون..."
-                    class="w-full bg-transparent text-white placeholder-white/50 border-none outline-none resize-none text-lg leading-relaxed"
-                    rows="4"
-                ></textarea>
                 
-                <div class="flex items-center justify-between mt-4">
-                    <div class="flex space-x-3 rtl:space-x-reverse">
-                        <button onclick="startVoiceInput()" class="p-3 bg-blue-600 rounded-full hover:bg-blue-700 transition-colors">
-                            <span class="material-symbols-outlined text-white">mic</span>
-                        </button>
-                        <button onclick="openCamera()" class="p-3 bg-purple-600 rounded-full hover:bg-purple-700 transition-colors">
-                            <span class="material-symbols-outlined text-white">camera_alt</span>
-                        </button>
-                    </div>
-                    <span id="charCount" class="text-white/60 text-sm">0/500</span>
+                <div class="swap-btn">
+                    <button id="swap-languages" title="تبديل اللغات">⇄</button>
+                </div>
+                
+                <div class="language-group">
+                    <label for="target-lang">اللغة الهدف:</label>
+                    <select id="target-lang">
+                        <option value="en">English</option>
+                        <option value="ar">العربية</option>
+                        <option value="fr">Français</option>
+                        <option value="es">Español</option>
+                        <option value="de">Deutsch</option>
+                        <option value="it">Italiano</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="zh">中文</option>
+                    </select>
                 </div>
             </div>
 
-            <!-- Output Section -->
-            <div class="bg-white/10 rounded-2xl p-4 glass-effect">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-white/80 text-sm font-medium">الترجمة</span>
-                    <div class="flex space-x-2 rtl:space-x-reverse">
-                        <button onclick="copyTranslation()" class="text-white/60 hover:text-white transition-colors">
-                            <span class="material-symbols-outlined text-sm">content_copy</span>
+            <!-- منطقة الإدخال تحت اختيار اللغة مباشرة -->
+            <div class="input-section">
+                <div class="text-input">
+                    <textarea id="source-text" placeholder="اكتب النص هنا أو استخدم الميكروفون..."></textarea>
+                    <div class="input-controls">
+                        <button id="mic-btn" class="mic-button">
+                            <span class="mic-icon">🎤</span>
+                            <span class="mic-text">اضغط للتحدث</span>
                         </button>
-                        <button onclick="playTranslation()" class="text-white/60 hover:text-white transition-colors">
-                            <span class="material-symbols-outlined text-sm">volume_up</span>
+                        <button id="image-upload-btn" class="image-upload-button">
+                            <span class="upload-icon">📷</span>
+                            <span class="upload-text">رفع صورة</span>
                         </button>
+                        <input type="file" id="image-input" accept="image/*" capture="environment" style="display: none;">
+                        <button id="clear-btn" class="clear-button">مسح</button>
                     </div>
                 </div>
-                <div id="outputText" class="text-white text-lg leading-relaxed min-h-[100px] flex items-center">
-                    <span class="text-white/50">ستظهر الترجمة هنا...</span>
+            </div>
+
+            <!-- منطقة الترجمة -->
+            <div class="translation-area">
+                <div class="output-section">
+                    <div class="translation-output">
+                        <div id="translated-text" class="translated-text">الترجمة ستظهر هنا...</div>
+                        <div class="output-controls">
+                            <button id="speak-btn" class="speak-button" disabled>
+                                <span class="speak-icon">🔊</span>
+                                <span class="speak-text">استمع للترجمة</span>
+                            </button>
+                            <button id="copy-btn" class="copy-button" disabled>نسخ</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Action Buttons -->
-        <div class="p-4 space-y-3">
-            <button onclick="translateText()" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-4 rounded-2xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg">
-                <span class="material-symbols-outlined ml-2">translate</span>
-                ترجم الآن
-            </button>
-            
-            <div class="flex space-x-3 rtl:space-x-reverse">
-                <button onclick="saveTranslation()" class="flex-1 bg-white/10 text-white font-medium py-3 rounded-xl glass-effect hover:bg-white/20 transition-colors">
-                    <span class="material-symbols-outlined ml-1 text-sm">bookmark</span>
-                    حفظ
-                </button>
-                <button onclick="shareTranslation()" class="flex-1 bg-white/10 text-white font-medium py-3 rounded-xl glass-effect hover:bg-white/20 transition-colors">
-                    <span class="material-symbols-outlined ml-1 text-sm">share</span>
-                    مشاركة
-                </button>
-                <button onclick="viewHistory()" class="flex-1 bg-white/10 text-white font-medium py-3 rounded-xl glass-effect hover:bg-white/20 transition-colors">
-                    <span class="material-symbols-outlined ml-1 text-sm">history</span>
-                    السجل
-                </button>
+            <div class="status-bar">
+                <div id="status" class="status">جاهز للاستخدام</div>
+                <div class="connection-status">
+                    <span id="connection-indicator" class="online">🟢</span>
+                    <span>متصل</span>
+                </div>
             </div>
-        </div>
+
+            <div class="favorites-section">
+                <h3>العبارات المحفوظة</h3>
+                <div id="favorites-list" class="favorites-list">
+                    <div class="favorite-item" data-text="مرحبا، كيف حالك؟">
+                        <span>مرحبا، كيف حالك؟</span>
+                        <button class="use-favorite">استخدم</button>
+                    </div>
+                    <div class="favorite-item" data-text="بكم هذا؟">
+                        <span>بكم هذا؟</span>
+                        <button class="use-favorite">استخدم</button>
+                    </div>
+                    <div class="favorite-item" data-text="أين الفندق؟">
+                        <span>أين الفندق؟</span>
+                        <button class="use-favorite">استخدم</button>
+                    </div>
+                    <div class="favorite-item" data-text="شكراً لك">
+                        <span>شكراً لك</span>
+                        <button class="use-favorite">استخدم</button>
+                    </div>
+                </div>
+                <button id="add-favorite" class="add-favorite-btn">+ إضافة للمفضلة</button>
+            </div>
+        </main>
     </div>
 
-    <script>
-        // Translation functionality
-        function translateText() {
-            const inputText = document.getElementById('inputText').value.trim();
-            const outputDiv = document.getElementById('outputText');
-            
-            if (!inputText) {
-                alert('يرجى إدخال نص للترجمة');
-                return;
-            }
-            
-            // Show loading state
-            outputDiv.innerHTML = '<span class="text-blue-400">جاري الترجمة...</span>';
-            
-            // Simulate translation (replace with actual API call)
-            setTimeout(() => {
-                outputDiv.innerHTML = `<span class="text-white">Hello World! This is a sample translation.</span>`;
-            }, 1500);
-        }
-        
-        function swapLanguages() {
-            const fromLang = document.getElementById('fromLang');
-            const toLang = document.getElementById('toLang');
-            const temp = fromLang.textContent;
-            fromLang.textContent = toLang.textContent;
-            toLang.textContent = temp;
-        }
-        
-        function clearInput() {
-            document.getElementById('inputText').value = '';
-            updateCharCount();
-        }
-        
-        function updateCharCount() {
-            const input = document.getElementById('inputText');
-            const count = document.getElementById('charCount');
-            count.textContent = `${input.value.length}/500`;
-        }
-        
-        function startVoiceInput() {
-            alert('ميزة التسجيل الصوتي قيد التطوير');
-        }
-        
-        function openCamera() {
-            alert('ميزة ترجمة الصور قيد التطوير');
-        }
-        
-        function copyTranslation() {
-            const outputText = document.getElementById('outputText').textContent;
-            navigator.clipboard.writeText(outputText);
-            alert('تم نسخ الترجمة');
-        }
-        
-        function playTranslation() {
-            alert('ميزة النطق قيد التطوير');
-        }
-        
-        function saveTranslation() {
-            alert('تم حفظ الترجمة');
-        }
-        
-        function shareTranslation() {
-            alert('ميزة المشاركة قيد التطوير');
-        }
-        
-        function viewHistory() {
-            alert('سجل الترجمات قيد التطوير');
-        }
-        
-        function goBack() {
-            window.location.href = 'welcome.html';
-        }
-        
-        function openSettings() {
-            alert('صفحة الإعدادات قيد التطوير');
-        }
-        
-        // Event listeners
-        document.getElementById('inputText').addEventListener('input', updateCharCount);
-        
-        // Initialize
-        updateCharCount();
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
