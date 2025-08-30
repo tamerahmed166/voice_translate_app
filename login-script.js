@@ -214,7 +214,7 @@ class AuthManager {
             
             // إعادة توجيه إلى الصفحة الرئيسية
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                window.location.href = 'index.html';
             }, 1500);
             
         } catch (error) {
@@ -271,7 +271,7 @@ class AuthManager {
             
             // إعادة توجيه إلى الصفحة الرئيسية
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                window.location.href = 'index.html';
             }, 1500);
             
         } catch (error) {
@@ -458,8 +458,8 @@ function checkExistingSession() {
         try {
             const userData = JSON.parse(sessionData);
             if (userData.isLoggedIn) {
-                // إعادة توجيه إلى لوحة التحكم إذا كان المستخدم مسجل دخوله بالفعل
-                window.location.href = 'dashboard.html';
+                // إعادة توجيه إلى الصفحة الرئيسية إذا كان المستخدم مسجل دخوله بالفعل
+                window.location.href = 'index.html';
             }
         } catch (error) {
             console.error('خطأ في قراءة بيانات الجلسة:', error);

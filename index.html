@@ -1,196 +1,314 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مترجم الصوت الذكي - مرحباً بك</title>
+    <title>Instant Translation | الترجمة الفورية</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#667eea">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <meta name="theme-color" content="#1f2937">
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="مترجم الصوت">
+    <meta name="apple-mobile-web-app-title" content="Instant Translation">
     <link rel="apple-touch-icon" href="icon-192x192.png">
     <style>
-        .welcome-container {
-            min-height: 100vh;
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --text-color: #333;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --border-color: #e9ecef;
+            --secondary-text: #6c757d;
+        }
+        
+        [data-theme="dark"] {
+            --text-color: #ffffff;
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --border-color: #404040;
+            --secondary-text: #b0b0b0;
+            --primary-color: #4c6ef5;
+            --secondary-color: #5c7cfa;
+        }
+        
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        
+        [data-theme="dark"] .top-bar {
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        [data-theme="dark"] .toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        [data-theme="dark"] .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        [data-theme="dark"] .logo-placeholder {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        [data-theme="dark"] .logo-placeholder:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        [data-theme="dark"] .voice-btn {
+            background: linear-gradient(135deg, #4c6ef5, #5c7cfa);
+            box-shadow: 0 6px 20px rgba(76, 110, 245, 0.4);
+        }
+        
+        [data-theme="dark"] .text-btn {
+            background: linear-gradient(135deg, #51cf66, #40c057);
+            box-shadow: 0 6px 20px rgba(81, 207, 102, 0.4);
+        }
+        
+        [data-theme="dark"] .settings-btn {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        body {
+            min-height: max(884px, 100dvh);
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            text-align: center;
+            justify-content: center;
+            color: var(--text-color);
+            overflow-x: hidden;
+            transition: all 0.3s ease;
         }
         
-        .welcome-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            max-width: 500px;
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            z-index: 1000;
+        }
+        
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            padding: 8px 16px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Old logo styles removed */
+        
+        .main-button {
             width: 100%;
+            height: 64px;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        
+        .voice-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .text-btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.3);
+        }
+        
+        .settings-btn {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.25));
+            border: 2px solid rgba(255, 255, 255, 0.3);
             backdrop-filter: blur(10px);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
         }
         
-        .welcome-title {
-            font-size: 2.5rem;
-            color: #333;
-            margin-bottom: 10px;
-            font-weight: 700;
+        .main-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
         
-        .welcome-subtitle {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
-        
-        .welcome-features {
-            margin: 30px 0;
+        [dir="rtl"] {
             text-align: right;
         }
         
-        .feature-item {
-            display: flex;
-            align-items: center;
-            margin: 15px 0;
-            font-size: 1.1rem;
-            color: #555;
+        [dir="rtl"] .top-bar {
+            flex-direction: row-reverse;
         }
         
-        .feature-icon {
-            font-size: 1.5rem;
-            margin-left: 15px;
-            width: 30px;
-        }
-        
-        .welcome-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 40px;
-        }
-        
-        .welcome-btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        .btn-secondary {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-        
-        .btn-secondary:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-        
-        .app-logo {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            animation: bounce 2s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-10px);
-            }
-            60% {
-                transform: translateY(-5px);
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .welcome-card {
-                padding: 30px 20px;
-                margin: 10px;
-            }
-            
-            .welcome-title {
-                font-size: 2rem;
-            }
-            
-            .welcome-subtitle {
-                font-size: 1rem;
-            }
-            
-            .welcome-buttons {
-                gap: 12px;
-            }
-            
-            .welcome-btn {
-                padding: 12px 25px;
-                font-size: 1.1rem;
-            }
-        }
+        /* Logo styles removed - using new design */
     </style>
 </head>
-<body>
-    <div class="welcome-container">
-        <div class="welcome-card">
-            <div class="app-logo">🎤</div>
-            <h1 class="welcome-title">مترجم الصوت الذكي</h1>
-            <p class="welcome-subtitle">ترجمة فورية بالصوت والنص مع ذكاء اصطناعي متقدم</p>
-            
-            <div class="welcome-features">
-                <div class="feature-item">
-                    <span class="feature-icon">🎙️</span>
-                    <span>ترجمة صوتية فورية</span>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">📷</span>
-                    <span>استخراج النص من الصور</span>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">🤖</span>
-                    <span>ذكاء اصطناعي متطور</span>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">🌍</span>
-                    <span>دعم أكثر من 100 لغة</span>
-                </div>
-            </div>
-            
-            <div class="welcome-buttons">
-                <a href="translate.html" class="welcome-btn btn-primary">
-                    <span>🚀</span>
-                    <span>ابدأ الترجمة الآن</span>
-                </a>
-                <a href="login.html" class="welcome-btn btn-secondary">
-                    <span>👤</span>
-                    <span>تسجيل الدخول</span>
-                </a>
-            </div>
+<body style="background: linear-gradient(135deg, #4f46e5, #7c3aed, #ec4899);">
+    <!-- Top Bar with Language and Theme Toggle -->
+    <div class="top-bar">
+        <div class="language-toggle">
+            <button id="langToggle" class="toggle-btn">
+                <span class="lang-text">العربية</span>
+            </button>
+        </div>
+        <div class="theme-toggle">
+            <button id="themeToggle" class="toggle-btn">
+                <span class="theme-icon">🌙</span>
+            </button>
         </div>
     </div>
+    
+    <div class="relative flex size-full min-h-screen flex-col dark justify-between group/design-root overflow-x-hidden" style='font-family: Inter, "Noto Sans", sans-serif; background: linear-gradient(135deg, #4f46e5, #7c3aed, #ec4899);'>
+        <div class="flex flex-col items-center justify-center flex-grow">
+            <div class="w-full max-w-md px-4">
+                <div class="flex flex-col items-center justify-center gap-6">
+                    <div class="flex items-center justify-center bg-white/20 backdrop-blur-sm rounded-full size-32 shadow-lg">
+                        <div class="flex items-center justify-center bg-white rounded-full size-24">
+                            <span class="material-symbols-outlined text-transparent bg-clip-text bg-gradient-to-r from-[#6366F1] to-[#EC4899]" style="font-size: 56px;">translate</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <h1 class="text-white text-5xl font-bold tracking-tighter" style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">LinguaLink</h1>
+                        <p class="text-white/80 text-lg mt-2">Translate the world, instantly.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4">
+            </div>
+            <div class="w-full px-6 space-y-6">
+                <button onclick="window.location.href='translate.html'" class="flex w-full items-center justify-center rounded-xl h-12 px-4 text-white text-base font-semibold tracking-wide transition-all duration-300 hover:transform hover:scale-105 hover:shadow-lg main-button voice-btn" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1)); border: 2px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(10px); box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);" data-ar="🎤 بدء الترجمة الصوتية" data-en="🎤 Start Voice Translation">
+                     <span class="material-symbols-outlined mr-2">translate</span>
+                     <span class="truncate">🎤 Start Voice Translation</span>
+                 </button>
+                 <button onclick="window.location.href='settings.html'" class="flex w-full items-center justify-center rounded-xl h-12 px-4 text-white text-base font-semibold tracking-wide transition-all duration-300 hover:transform hover:scale-105 hover:shadow-lg main-button settings-btn" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.15)); border: 2px solid rgba(255, 255, 255, 0.4); backdrop-filter: blur(10px); box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);" data-ar="⚙️ الإعدادات" data-en="⚙️ Settings">
+                      <span class="material-symbols-outlined mr-2">settings</span>
+                      <span class="truncate">⚙️ Settings</span>
+                  </button>
+                  <button onclick="window.location.href='login.html'" class="flex w-full items-center justify-center rounded-xl h-12 px-4 text-white text-base font-semibold tracking-wide transition-all duration-300 hover:transform hover:scale-105 hover:shadow-lg main-button text-btn" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)); border: 2px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(10px); box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);" data-ar="📝 تسجيل الدخول" data-en="📝 Log In">
+                      <span class="truncate">📝 Log In</span>
+                  </button>
+            </div>
+        </div>
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-spin">
+            <svg class="size-6 text-white" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+            </svg>
+        </div>
+        <div class="h-10" style="background: linear-gradient(135deg, #4f46e5, #7c3aed, #ec4899);"></div>
+    </div>
+    
+    <script>
+        // Language and theme state
+        let currentLanguage = 'en';
+        let currentTheme = 'light';
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved preferences
+            currentLanguage = localStorage.getItem('language') || 'en';
+            currentTheme = localStorage.getItem('theme') || 'light';
+            
+            // Apply saved settings
+            updateLanguage();
+            updateTheme();
+            
+             // Event listeners
+             document.getElementById('langToggle').addEventListener('click', toggleLanguage);
+             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        });
+        
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'en' ? 'ar' : 'en';
+            localStorage.setItem('language', currentLanguage);
+            updateLanguage();
+        }
+        
+        function updateLanguage() {
+            const html = document.documentElement;
+            const langToggle = document.getElementById('langToggle');
+            
+            if (currentLanguage === 'ar') {
+                html.setAttribute('lang', 'ar');
+                html.setAttribute('dir', 'rtl');
+                langToggle.querySelector('.lang-text').textContent = 'English';
+            } else {
+                html.setAttribute('lang', 'en');
+                html.setAttribute('dir', 'ltr');
+                langToggle.querySelector('.lang-text').textContent = 'العربية';
+            }
+            
+            // Update all text elements
+            const elements = document.querySelectorAll('[data-ar][data-en]');
+            elements.forEach(element => {
+                const text = currentLanguage === 'ar' ? element.getAttribute('data-ar') : element.getAttribute('data-en');
+                if (element.innerHTML.includes('<br>')) {
+                    element.innerHTML = text;
+                } else {
+                    element.textContent = text;
+                }
+            });
+        }
+        
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            localStorage.setItem('theme', currentTheme);
+            updateTheme();
+        }
+        
+        function updateTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (currentTheme === 'dark') {
+                body.setAttribute('data-theme', 'dark');
+                themeToggle.querySelector('.theme-icon').textContent = '☀️';
+            } else {
+                body.removeAttribute('data-theme');
+                themeToggle.querySelector('.theme-icon').textContent = '🌙';
+            }
+        }
+
+         
+
+        
+
+    </script>
 </body>
 </html>
