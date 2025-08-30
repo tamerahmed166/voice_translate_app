@@ -216,13 +216,20 @@
                             🗑️ مسح
                         </button>
                         
-                        <button id="image-upload-btn" class="control-btn" title="ترجمة صورة">
-                            📷 صورة
-                        </button>
-                        
-                        <button id="camera-btn" class="control-btn" title="فتح الكاميرا">
-                            📸 كاميرا
-                        </button>
+                        <div class="image-capture-container">
+                            <button id="image-capture-btn" class="control-btn image-capture-btn" title="التقاط أو تحميل صورة">
+                                📷 صورة
+                                <span class="dropdown-arrow">▼</span>
+                            </button>
+                            <div id="image-capture-menu" class="image-capture-menu">
+                                <div class="menu-item" data-action="upload">
+                                    📁 تحميل صورة
+                                </div>
+                                <div class="menu-item" data-action="camera">
+                                    📸 فتح الكاميرا
+                                </div>
+                            </div>
+                        </div>
                         
                         <input type="file" id="image-input" accept="image/*" style="display: none;">
                     </div>

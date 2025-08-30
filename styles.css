@@ -298,6 +298,246 @@ main {
     animation: speaking-pulse 1s infinite;
 }
 
+/* Image Capture Container Styles */
+.image-capture-container {
+    position: relative;
+    display: inline-block;
+}
+
+.image-capture-btn {
+    position: relative;
+}
+
+.dropdown-arrow {
+    font-size: 0.8rem;
+    margin-left: 5px;
+    transition: transform 0.3s ease;
+}
+
+.image-capture-container.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.image-capture-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.image-capture-container.active .image-capture-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.menu-item {
+    padding: 12px 16px;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.menu-item:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.menu-item:first-child {
+    border-radius: 10px 10px 0 0;
+}
+
+.menu-item:last-child {
+    border-radius: 0 0 10px 10px;
+}
+
+/* Smart Text Selection Modal Styles */
+.smart-selection-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+}
+
+.smart-selection-content {
+    background: white;
+    border-radius: 15px;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: 800px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.image-preview {
+    text-align: center;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.text-selection-area h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.extracted-text-container {
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 15px;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #f9f9f9;
+    margin-bottom: 15px;
+}
+
+.selectable-sentence {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+.selectable-word {
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.selectable-word:hover {
+    background: rgba(102, 126, 234, 0.2);
+}
+
+.selectable-word.selected {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-weight: 600;
+}
+
+.selection-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.selection-controls .control-btn {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    min-width: auto;
+}
+
+.modal-footer {
+    padding: 20px;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.control-btn.primary {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.control-btn.secondary {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Responsive Design for Smart Selection */
+@media (max-width: 768px) {
+    .smart-selection-content {
+        width: 95vw;
+        max-height: 95vh;
+    }
+    
+    .modal-body {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .image-preview img {
+        max-height: 200px;
+    }
+    
+    .extracted-text-container {
+        max-height: 200px;
+    }
+}
+
 @keyframes speaking-pulse {
     0% { opacity: 1; }
     50% { opacity: 0.7; }
