@@ -383,9 +383,9 @@ main {
 .smart-selection-content {
     background: white;
     border-radius: 15px;
-    max-width: 90vw;
-    max-height: 90vh;
-    width: 800px;
+    max-width: 70vw;
+    max-height: 70vh;
+    width: 600px;
     overflow: hidden;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     animation: slideIn 0.3s ease;
@@ -421,12 +421,12 @@ main {
 }
 
 .modal-body {
-    padding: 20px;
-    max-height: 60vh;
+    padding: 15px;
+    max-height: 45vh;
     overflow-y: auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 15px;
 }
 
 .image-preview {
@@ -435,7 +435,7 @@ main {
 
 .image-preview img {
     max-width: 100%;
-    max-height: 300px;
+    max-height: 200px;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
@@ -449,11 +449,11 @@ main {
 .extracted-text-container {
     border: 2px solid #e0e0e0;
     border-radius: 10px;
-    padding: 15px;
-    max-height: 250px;
+    padding: 10px;
+    max-height: 180px;
     overflow-y: auto;
     background: #f9f9f9;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .selectable-sentence {
