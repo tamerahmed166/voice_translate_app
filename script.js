@@ -188,9 +188,13 @@ class VoiceTranslateApp {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             this.recognition = new SpeechRecognition();
             
-            this.recognition.continuous = false;
+            this.recognition.continuous = true;
             this.recognition.interimResults = true;
             this.recognition.maxAlternatives = 3;
+            
+            // إعدادات زمنية أطول للتسجيل
+            this.recordingTimeout = null;
+            this.maxRecordingTime = 60000; // 60 ثانية
             
             // تحديد لغة التعرف على الصوت بناءً على اللغة المصدر
             this.updateRecognitionLanguage();
@@ -345,6 +349,11 @@ class VoiceTranslateApp {
         
         if (this.isRecording) {
             this.recognition.stop();
+            // إلغاء مؤقت الإيقاف التلقائي
+            if (this.recordingTimeout) {
+                clearTimeout(this.recordingTimeout);
+                this.recordingTimeout = null;
+            }
         } else {
             // تحديد لغة التعرف
             const sourceLang = this.elements.sourceLang.value;
@@ -366,7 +375,16 @@ class VoiceTranslateApp {
                 this.recognition.lang = 'ar-SA';
             }
             
+            // بدء التسجيل مع مؤقت إيقاف تلقائي
             this.recognition.start();
+            
+            // إعداد مؤقت الإيقاف التلقائي
+            this.recordingTimeout = setTimeout(() => {
+                if (this.isRecording) {
+                    this.recognition.stop();
+                    this.updateStatus('تم إيقاف التسجيل تلقائياً بعد 60 ثانية');
+                }
+            }, this.maxRecordingTime);
         }
     }
 
